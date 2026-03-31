@@ -1,0 +1,76 @@
+'use client'
+
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import { useTasks } from '@/hooks/useTasks'
+import { useMembers } from '@/hooks/useMembers'
+import { getTodayDisplayKL } from '@/lib/utils/dateHelpers'
+import { OverviewTab } from './OverviewTab'
+import { BoardsTab } from './BoardsTab'
+import { PriorityTab } from './PriorityTab'
+import { SummaryTab } from './SummaryTab'
+import { IntegrationsTab } from './IntegrationsTab'
+
+const tabs = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'boards', label: 'Individual Boards' },
+  { id: 'priority', label: 'Priority & Blockers' },
+  { id: 'summary', label: 'Daily Summary' },
+  { id: 'integrations', label: 'Integrations' },
+] as const
+
+type TabId = (typeof tabs)[number]['id']
+
+export function DashboardShell() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const activeTab = (searchParams.get('tab') as TabId) || 'overview'
+
+  const { tasks, loading } = useTasks()
+  const members = useMembers()
+
+  const setTab = (tab: TabId) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', tab)
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border px-4 sm:px-6 py-4">
+        <h1 className="text-lg font-medium tracking-tight">
+          JCI Youth IICS &middot; Command Dashboard
+        </h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {getTodayDisplayKL()}
+        </p>
+      </header>
+
+      <nav className="border-b border-border px-4 sm:px-6 overflow-x-auto">
+        <div className="flex gap-1 min-w-max">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setTab(tab.id)}
+              className={`px-4 py-2.5 text-sm font-medium transition-colors duration-150 border-b-2 whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'border-foreground text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      <main className="px-4 sm:px-6 py-6 max-w-[1400px] mx-auto">
+        {activeTab === 'overview' && <OverviewTab tasks={tasks} members={members} loading={loading} />}
+        {activeTab === 'boards' && <BoardsTab tasks={tasks} members={members} loading={loading} />}
+        {activeTab === 'priority' && <PriorityTab tasks={tasks} members={members} loading={loading} />}
+        {activeTab === 'summary' && <SummaryTab tasks={tasks} members={members} loading={loading} />}
+        {activeTab === 'integrations' && <IntegrationsTab />}
+      </main>
+    </div>
+  )
+}

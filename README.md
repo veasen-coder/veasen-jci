@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JCI Youth IICS — Command Dashboard
 
-## Getting Started
+A team task management dashboard for the 6-person leadership board of JCI Youth IICS (Malaysia). Provides a unified view of tasks, workload, blockers, priorities, and AI-generated daily/weekly summaries.
 
-First, run the development server:
+## Tech Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS + shadcn/ui
+- **Database:** Supabase (PostgreSQL)
+- **State:** Zustand
+- **Drag & Drop:** @hello-pangea/dnd
+- **AI:** Anthropic Claude API (@anthropic-ai/sdk)
+
+## Setup
+
+### 1. Clone and install
+
+```bash
+git clone <repo-url>
+cd veasen-JCI
+npm install --legacy-peer-deps
+```
+
+### 2. Configure environment variables
+
+Copy the example file and fill in your Supabase and Anthropic credentials:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Required variables:
+- `NEXT_PUBLIC_SUPABASE_URL` — Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon/public key
+- `SUPABASE_SERVICE_ROLE_KEY` — Supabase service role key (for server-side operations)
+- `ANTHROPIC_API_KEY` — Anthropic API key (for AI summary generation)
+
+### 3. Set up the database
+
+Run the schema and seed SQL files against your Supabase project:
+
+1. Go to your Supabase dashboard → SQL Editor
+2. Run `supabase/schema.sql` to create tables, RLS policies, and indexes
+3. Run `supabase/seed.sql` to insert team members and sample tasks
+4. Enable Realtime for the `tasks` table (Settings → Realtime → Enable for tasks table)
+
+### 4. Run the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Overview Tab:** Metric cards, team workload progress bars, member snapshot grid
+- **Individual Boards Tab:** Per-member kanban boards with drag-and-drop
+- **Priority & Blockers Tab:** Filtered views for blocked, overdue, and high-priority tasks
+- **Daily Summary Tab:** Completed today, up next, and AI-generated weekly rollup
+- **Integrations Tab:** Information about available integration options
 
-## Learn More
+## Team Members
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Name | Role |
+|------|------|
+| Veasen Teh | President |
+| Jia Xuan | Secretary |
+| Chin Hong | Treasurer |
+| Matthew | Membership Director |
+| Angelyn | Activity Director |
+| Victoria | Marketing Director |

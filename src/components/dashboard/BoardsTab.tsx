@@ -1,0 +1,293 @@
+'use client'
+
+import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from '@hello-pangea/dnd'
+import type { TaskWithMember, Member, TaskStatus, TaskPriority } from '@/lib/supabase/types'
+import { useTaskStore } from '@/lib/store/useTaskStore'
+import { filterByMember } from '@/lib/utils/taskHelpers'
+import { formatDueDate, isOverdue } from '@/lib/utils/dateHelpers'
+import { MemberAvatar } from '@/components/shared/MemberAvatar'
+import { StatusBadge } from '@/components/shared/StatusBadge'
+import { PriorityBadge } from '@/components/shared/PriorityBadge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import { Plus, X, Calendar } from 'lucide-react'
+import { toast } from 'sonner'
+
+interface BoardsTabProps {
+  tasks: TaskWithMember[]
+  members: Member[]
+  loading: boolean
+}
+
+type ColumnId = 'todo' | 'in-progress' | 'done'
+
+const columns: { id: ColumnId; label: string }[] = [
+  { id: 'todo', label: 'To Do' },
+  { id: 'in-progress', label: 'In Progress' },
+  { id: 'done', label: 'Done' },
+]
+
+export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
+  const searchParams = useSearchParams()
+  const memberParam = searchParams.get('member')
+  const [selectedMemberId, setSelectedMemberId] = useState<string>(
+    memberParam || members[0]?.id || ''
+  )
+  const updateTask = useTaskStore((s) => s.updateTask)
+
+  const selectedMember = members.find((m) => m.id === selectedMemberId)
+  const memberTasks = filterByMember(tasks, selectedMemberId) as TaskWithMember[]
+
+  const getColumnTasks = (columnId: ColumnId) => {
+    if (columnId === 'in-progress') {
+      return memberTasks.filter(
+        (t) => t.status === 'in-progress' || t.status === 'blocked'
+      )
+    }
+    return memberTasks.filter((t) => t.status === columnId)
+  }
+
+  const handleDragEnd = async (result: DropResult) => {
+    const { draggableId, destination } = result
+    if (!destination) return
+
+    const newStatus = destination.droppableId as TaskStatus
+    const task = tasks.find((t) => t.id === draggableId)
+    if (!task || task.status === newStatus) return
+
+    try {
+      await updateTask(draggableId, { status: newStatus })
+    } catch {
+      toast.error('Failed to update task status')
+    }
+  }
+
+  if (loading) {
+    return <BoardsSkeleton />
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Member Selector */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {members.map((member) => (
+          <button
+            key={member.id}
+            onClick={() => setSelectedMemberId(member.id)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap shrink-0 ${
+              selectedMemberId === member.id
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            <MemberAvatar member={member} size="sm" />
+            {member.name}
+          </button>
+        ))}
+      </div>
+
+      {selectedMember && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>{selectedMember.role}</span>
+          <span>&middot;</span>
+          <span>{memberTasks.length} tasks</span>
+        </div>
+      )}
+
+      {/* Kanban Board */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {columns.map((column) => {
+            const columnTasks = getColumnTasks(column.id)
+            return (
+              <div key={column.id} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">
+                    {column.label}{' '}
+                    <span className="text-muted-foreground">({columnTasks.length})</span>
+                  </h3>
+                </div>
+
+                <Droppable droppableId={column.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`min-h-[200px] rounded-xl border border-border p-3 space-y-2 transition-colors duration-150 ${
+                        snapshot.isDraggingOver ? 'bg-accent/50 border-accent' : 'bg-muted/30'
+                      }`}
+                    >
+                      {columnTasks.map((task, index) => (
+                        <Draggable key={task.id} draggableId={task.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`rounded-xl border border-border bg-card p-3 transition-all duration-150 ${
+                                snapshot.isDragging ? 'shadow-lg ring-2 ring-ring/20' : ''
+                              }`}
+                            >
+                              <p className="text-sm font-medium line-clamp-2 mb-2">
+                                {task.title}
+                              </p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <StatusBadge status={task.status} />
+                                <PriorityBadge priority={task.priority} />
+                                {task.due_date && (
+                                  <span
+                                    className={`text-xs ${
+                                      isOverdue(task.due_date) && task.status !== 'done'
+                                        ? 'text-red-600'
+                                        : 'text-muted-foreground'
+                                    }`}
+                                  >
+                                    {formatDueDate(task.due_date)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+
+                <AddTaskInline memberId={selectedMemberId} status={column.id} />
+              </div>
+            )
+          })}
+        </div>
+      </DragDropContext>
+    </div>
+  )
+}
+
+function AddTaskInline({ memberId, status }: { memberId: string; status: TaskStatus }) {
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [priority, setPriority] = useState<TaskPriority>('normal')
+  const [submitting, setSubmitting] = useState(false)
+  const addTask = useTaskStore((s) => s.addTask)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim()) return
+
+    setSubmitting(true)
+    try {
+      await addTask({
+        member_id: memberId,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        status,
+        priority,
+        due_date: dueDate || undefined,
+      })
+      setTitle('')
+      setDescription('')
+      setDueDate('')
+      setPriority('normal')
+      setOpen(false)
+      toast.success('Task created')
+    } catch {
+      toast.error('Failed to create task')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150 w-full justify-center py-2"
+      >
+        <Plus className="h-4 w-4" />
+        Add task
+      </button>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-3 space-y-3">
+      <Input
+        placeholder="Task title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        autoFocus
+        required
+      />
+      <Textarea
+        placeholder="Description (optional)"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        rows={2}
+        className="resize-none"
+      />
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => setPriority(priority === 'normal' ? 'high' : 'normal')}
+          className={`rounded-md text-xs font-medium px-3 py-2 transition-colors duration-150 ${
+            priority === 'high'
+              ? 'bg-amber-100 text-amber-800'
+              : 'bg-muted text-muted-foreground'
+          }`}
+        >
+          {priority === 'high' ? 'High' : 'Normal'}
+        </button>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button type="submit" size="sm" disabled={submitting || !title.trim()}>
+          {submitting ? 'Creating...' : 'Create'}
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function BoardsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-32 rounded-full" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="space-y-3">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-64 rounded-xl" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
