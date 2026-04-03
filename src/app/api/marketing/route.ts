@@ -6,9 +6,9 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   const supabase = createServerClient()
   const { data, error } = await supabase
-    .from('meeting_minutes')
+    .from('marketing_posts')
     .select('*')
-    .order('meeting_date', { ascending: false })
+    .order('due_date', { ascending: true })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -22,16 +22,15 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
 
   const { data, error } = await supabase
-    .from('meeting_minutes')
+    .from('marketing_posts')
     .insert({
       title: body.title,
-      meeting_date: body.meeting_date,
-      attendee_ids: body.attendee_ids || [],
-      agenda: body.agenda || null,
-      notes: body.notes || null,
-      action_items: body.action_items || [],
-      attachments: body.attachments || [],
-      google_docs_url: body.google_docs_url || null,
+      platform: body.platform,
+      status: body.status || 'draft',
+      due_date: body.due_date || null,
+      description: body.description || null,
+      assigned_to: body.assigned_to || null,
+      content_url: body.content_url || null,
     })
     .select()
     .single()

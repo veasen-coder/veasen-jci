@@ -84,9 +84,50 @@ CREATE TRIGGER update_meeting_minutes_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+-- Events table
+CREATE TABLE IF NOT EXISTS events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text,
+  event_date date NOT NULL,
+  poster_url text,
+  status text NOT NULL DEFAULT 'planning' CHECK (status IN ('planning', 'in-progress', 'completed')),
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to events" ON events FOR ALL USING (true) WITH CHECK (true);
+CREATE TRIGGER update_events_updated_at BEFORE UPDATE ON events FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Marketing posts table
+CREATE TABLE IF NOT EXISTS marketing_posts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  platform text NOT NULL CHECK (platform IN ('instagram', 'facebook', 'tiktok', 'twitter', 'linkedin', 'other')),
+  status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'scheduled', 'posted')),
+  due_date date,
+  description text,
+  assigned_to uuid REFERENCES members(id),
+  content_url text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE marketing_posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to marketing_posts" ON marketing_posts FOR ALL USING (true) WITH CHECK (true);
+CREATE TRIGGER update_marketing_posts_updated_at BEFORE UPDATE ON marketing_posts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Add event_id and needs_qc to tasks (run as ALTER if table already exists)
+-- ALTER TABLE tasks ADD COLUMN IF NOT EXISTS event_id uuid REFERENCES events(id) ON DELETE SET NULL;
+-- ALTER TABLE tasks ADD COLUMN IF NOT EXISTS needs_qc boolean NOT NULL DEFAULT false;
+
+-- Add google_docs_url to meeting_minutes (run as ALTER if table already exists)
+-- ALTER TABLE meeting_minutes ADD COLUMN IF NOT EXISTS google_docs_url text;
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_tasks_member_id ON tasks(member_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_updated_at ON tasks(updated_at);
 CREATE INDEX IF NOT EXISTS idx_meeting_minutes_date ON meeting_minutes(meeting_date DESC);
+CREATE INDEX IF NOT EXISTS idx_events_date ON events(event_date);
+CREATE INDEX IF NOT EXISTS idx_marketing_posts_due ON marketing_posts(due_date);

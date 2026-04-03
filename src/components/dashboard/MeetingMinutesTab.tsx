@@ -209,6 +209,7 @@ function MeetingForm({
   const [selectedAttendees, setSelectedAttendees] = useState<string[]>([])
   const [agenda, setAgenda] = useState('')
   const [notes, setNotes] = useState('')
+  const [googleDocsUrl, setGoogleDocsUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const toggleAttendee = (id: string) => {
@@ -232,6 +233,7 @@ function MeetingForm({
           attendee_ids: selectedAttendees,
           agenda: agenda.trim() || null,
           notes: notes.trim() || null,
+          google_docs_url: googleDocsUrl.trim() || null,
           action_items: [],
           attachments: [],
         }),
@@ -334,6 +336,18 @@ function MeetingForm({
         />
       </div>
 
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">
+          Google Docs Link (optional)
+        </label>
+        <Input
+          type="url"
+          placeholder="https://docs.google.com/document/d/..."
+          value={googleDocsUrl}
+          onChange={(e) => setGoogleDocsUrl(e.target.value)}
+        />
+      </div>
+
       <div className="flex items-center gap-2 pt-2">
         <Button type="submit" disabled={submitting || !title.trim()}>
           {submitting ? 'Creating...' : 'Create Meeting'}
@@ -363,6 +377,8 @@ function MeetingDetail({
   const [notes, setNotes] = useState(meeting.notes || '')
   const [editingAgenda, setEditingAgenda] = useState(false)
   const [agenda, setAgenda] = useState(meeting.agenda || '')
+  const [editingDocsUrl, setEditingDocsUrl] = useState(false)
+  const [docsUrl, setDocsUrl] = useState(meeting.google_docs_url || '')
   const [newActionText, setNewActionText] = useState('')
   const [newActionAssignee, setNewActionAssignee] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -607,6 +623,49 @@ function MeetingDetail({
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* Google Docs Link */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+            <FileText className="h-3.5 w-3.5" /> Google Docs
+          </h4>
+          <button
+            onClick={() => {
+              if (editingDocsUrl) {
+                saveField('google_docs_url', docsUrl.trim() || null)
+              }
+              setEditingDocsUrl(!editingDocsUrl)
+            }}
+            className="text-xs text-blue-600 hover:underline"
+          >
+            {editingDocsUrl ? 'Save' : 'Edit'}
+          </button>
+        </div>
+        {editingDocsUrl ? (
+          <Input
+            type="url"
+            value={docsUrl}
+            onChange={(e) => setDocsUrl(e.target.value)}
+            placeholder="https://docs.google.com/document/d/..."
+            className="text-sm"
+          />
+        ) : meeting.google_docs_url ? (
+          <a
+            href={meeting.google_docs_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-700 hover:bg-blue-100 transition-colors"
+          >
+            <FileText className="h-4 w-4 shrink-0" />
+            <span className="truncate">{meeting.google_docs_url}</span>
+          </a>
+        ) : (
+          <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3">
+            No Google Docs link added
+          </p>
+        )}
       </div>
 
       {/* Attachments */}

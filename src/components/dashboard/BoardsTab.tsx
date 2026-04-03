@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   DragDropContext,
@@ -8,18 +8,19 @@ import {
   Draggable,
   type DropResult,
 } from '@hello-pangea/dnd'
-import type { TaskWithMember, Member, TaskStatus, TaskPriority } from '@/lib/supabase/types'
+import type { TaskWithMember, Member, TaskStatus, TaskPriority, Event } from '@/lib/supabase/types'
 import { useTaskStore } from '@/lib/store/useTaskStore'
 import { filterByMember } from '@/lib/utils/taskHelpers'
 import { formatDueDate, isOverdue } from '@/lib/utils/dateHelpers'
 import { MemberAvatar } from '@/components/shared/MemberAvatar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
+import { TaskEditModal } from './TaskEditModal'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Plus, X, Calendar } from 'lucide-react'
+import { Plus, X, Calendar, Shield, Tag } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface BoardsTabProps {
@@ -42,7 +43,16 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
   const [selectedMemberId, setSelectedMemberId] = useState<string>(
     memberParam || 'all'
   )
+  const [editingTask, setEditingTask] = useState<TaskWithMember | null>(null)
+  const [events, setEvents] = useState<Event[]>([])
   const updateTask = useTaskStore((s) => s.updateTask)
+
+  useEffect(() => {
+    fetch('/api/events')
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setEvents(data) })
+      .catch(() => {})
+  }, [])
 
   const isAllView = selectedMemberId === 'all'
   const selectedMember = members.find((m) => m.id === selectedMemberId)
@@ -72,13 +82,18 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
     }
   }
 
+  const getEventName = (eventId: string | null) => {
+    if (!eventId) return null
+    return events.find((e) => e.id === eventId)?.title || null
+  }
+
   if (loading) {
     return <BoardsSkeleton />
   }
 
   return (
     <div className="space-y-6">
-      {/* Member Selector */}
+      {/* Member Selector — shows roles instead of names */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         <button
           onClick={() => setSelectedMemberId('all')}
@@ -101,7 +116,7 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
             }`}
           >
             <MemberAvatar member={member} size="sm" />
-            {member.name}
+            {member.role}
           </button>
         ))}
       </div>
@@ -109,6 +124,8 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         {selectedMember ? (
           <>
+            <span>{selectedMember.name}</span>
+            <span>&middot;</span>
             <span>{selectedMember.role}</span>
             <span>&middot;</span>
           </>
@@ -139,45 +156,61 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
                         snapshot.isDraggingOver ? 'bg-accent/50 border-accent' : 'bg-muted/30'
                       }`}
                     >
-                      {columnTasks.map((task, index) => (
-                        <Draggable key={task.id} draggableId={task.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`rounded-xl border border-border bg-card p-3 transition-all duration-150 ${
-                                snapshot.isDragging ? 'shadow-lg ring-2 ring-ring/20' : ''
-                              }`}
-                            >
-                              {isAllView && task.member && (
-                                <div className="flex items-center gap-1.5 mb-1.5">
-                                  <MemberAvatar member={task.member} size="sm" />
-                                  <span className="text-xs text-muted-foreground">{task.member.name}</span>
-                                </div>
-                              )}
-                              <p className="text-sm font-medium line-clamp-2 mb-2">
-                                {task.title}
-                              </p>
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <StatusBadge status={task.status} />
-                                <PriorityBadge priority={task.priority} />
-                                {task.due_date && (
-                                  <span
-                                    className={`text-xs ${
-                                      isOverdue(task.due_date) && task.status !== 'done'
-                                        ? 'text-red-600'
-                                        : 'text-muted-foreground'
-                                    }`}
-                                  >
-                                    {formatDueDate(task.due_date)}
-                                  </span>
+                      {columnTasks.map((task, index) => {
+                        const eventName = getEventName(task.event_id)
+                        return (
+                          <Draggable key={task.id} draggableId={task.id} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                onClick={() => setEditingTask(task)}
+                                className={`rounded-xl border border-border bg-card p-3 transition-all duration-150 cursor-pointer hover:ring-2 hover:ring-ring/20 ${
+                                  snapshot.isDragging ? 'shadow-lg ring-2 ring-ring/20' : ''
+                                }`}
+                              >
+                                {isAllView && task.member && (
+                                  <div className="flex items-center gap-1.5 mb-1.5">
+                                    <MemberAvatar member={task.member} size="sm" />
+                                    <span className="text-xs text-muted-foreground">{task.member.role}</span>
+                                  </div>
                                 )}
+                                <p className="text-sm font-medium line-clamp-2 mb-2">
+                                  {task.title}
+                                </p>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <StatusBadge status={task.status} />
+                                  <PriorityBadge priority={task.priority} />
+                                  {task.due_date && (
+                                    <span
+                                      className={`text-xs ${
+                                        isOverdue(task.due_date) && task.status !== 'done'
+                                          ? 'text-red-600'
+                                          : 'text-muted-foreground'
+                                      }`}
+                                    >
+                                      {formatDueDate(task.due_date)}
+                                    </span>
+                                  )}
+                                  {task.needs_qc && (
+                                    <span className="flex items-center gap-0.5 bg-violet-100 text-violet-700 rounded-md text-[10px] font-bold px-1.5 py-0.5">
+                                      <Shield className="h-3 w-3" />
+                                      QC
+                                    </span>
+                                  )}
+                                  {eventName && (
+                                    <span className="flex items-center gap-0.5 bg-emerald-100 text-emerald-700 rounded-md text-[10px] font-medium px-1.5 py-0.5 truncate max-w-[120px]">
+                                      <Tag className="h-3 w-3 shrink-0" />
+                                      {eventName}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
+                            )}
+                          </Draggable>
+                        )
+                      })}
                       {provided.placeholder}
                     </div>
                   )}
@@ -189,6 +222,15 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
           })}
         </div>
       </DragDropContext>
+
+      {/* Task Edit Modal */}
+      {editingTask && (
+        <TaskEditModal
+          task={editingTask}
+          events={events}
+          onClose={() => setEditingTask(null)}
+        />
+      )}
     </div>
   )
 }

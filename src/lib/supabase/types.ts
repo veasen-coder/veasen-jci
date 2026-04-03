@@ -1,5 +1,8 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'blocked' | 'done'
 export type TaskPriority = 'normal' | 'high'
+export type EventStatus = 'planning' | 'in-progress' | 'completed'
+export type MarketingPlatform = 'instagram' | 'facebook' | 'tiktok' | 'twitter' | 'linkedin' | 'other'
+export type MarketingStatus = 'draft' | 'scheduled' | 'posted'
 
 export interface Member {
   id: string
@@ -19,12 +22,38 @@ export interface Task {
   status: TaskStatus
   priority: TaskPriority
   due_date: string | null
+  event_id: string | null
+  needs_qc: boolean
   created_at: string
   updated_at: string
 }
 
 export interface TaskWithMember extends Task {
   member: Member
+}
+
+export interface Event {
+  id: string
+  title: string
+  description: string | null
+  event_date: string
+  poster_url: string | null
+  status: EventStatus
+  created_at: string
+  updated_at: string
+}
+
+export interface MarketingPost {
+  id: string
+  title: string
+  platform: MarketingPlatform
+  status: MarketingStatus
+  due_date: string | null
+  description: string | null
+  assigned_to: string | null
+  content_url: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface DailySummary {
@@ -61,6 +90,7 @@ export interface MeetingMinutes {
   notes: string | null
   action_items: ActionItem[]
   attachments: Attachment[]
+  google_docs_url: string | null
   created_at: string
   updated_at: string
 }
