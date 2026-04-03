@@ -43,7 +43,7 @@ export function PriorityTab({ tasks, loading }: PriorityTabProps) {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="h-4 w-4 text-red-600" />
-            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
               Blockers
             </h2>
             <span className="text-xs text-muted-foreground">({blocked.length})</span>
@@ -70,7 +70,7 @@ export function PriorityTab({ tasks, loading }: PriorityTabProps) {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Clock className="h-4 w-4 text-amber-600" />
-            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
               Overdue
             </h2>
             <span className="text-xs text-muted-foreground">({overdue.length})</span>
@@ -98,7 +98,7 @@ export function PriorityTab({ tasks, loading }: PriorityTabProps) {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <Flame className="h-4 w-4 text-amber-600" />
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+          <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
             High Priority
           </h2>
           <span className="text-xs text-muted-foreground">({highPriority.length})</span>

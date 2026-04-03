@@ -40,20 +40,21 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
   const searchParams = useSearchParams()
   const memberParam = searchParams.get('member')
   const [selectedMemberId, setSelectedMemberId] = useState<string>(
-    memberParam || members[0]?.id || ''
+    memberParam || 'all'
   )
   const updateTask = useTaskStore((s) => s.updateTask)
 
+  const isAllView = selectedMemberId === 'all'
   const selectedMember = members.find((m) => m.id === selectedMemberId)
-  const memberTasks = filterByMember(tasks, selectedMemberId) as TaskWithMember[]
+  const activeTasks = isAllView ? tasks : filterByMember(tasks, selectedMemberId) as TaskWithMember[]
 
   const getColumnTasks = (columnId: ColumnId) => {
     if (columnId === 'in-progress') {
-      return memberTasks.filter(
+      return activeTasks.filter(
         (t) => t.status === 'in-progress' || t.status === 'blocked'
       )
     }
-    return memberTasks.filter((t) => t.status === columnId)
+    return activeTasks.filter((t) => t.status === columnId)
   }
 
   const handleDragEnd = async (result: DropResult) => {
@@ -79,6 +80,16 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
     <div className="space-y-6">
       {/* Member Selector */}
       <div className="flex gap-2 overflow-x-auto pb-2">
+        <button
+          onClick={() => setSelectedMemberId('all')}
+          className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap shrink-0 ${
+            isAllView
+              ? 'bg-foreground text-background'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          All Members
+        </button>
         {members.map((member) => (
           <button
             key={member.id}
@@ -95,13 +106,15 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
         ))}
       </div>
 
-      {selectedMember && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{selectedMember.role}</span>
-          <span>&middot;</span>
-          <span>{memberTasks.length} tasks</span>
-        </div>
-      )}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {selectedMember ? (
+          <>
+            <span>{selectedMember.role}</span>
+            <span>&middot;</span>
+          </>
+        ) : null}
+        <span>{activeTasks.length} tasks</span>
+      </div>
 
       {/* Kanban Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -137,6 +150,12 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
                                 snapshot.isDragging ? 'shadow-lg ring-2 ring-ring/20' : ''
                               }`}
                             >
+                              {isAllView && task.member && (
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  <MemberAvatar member={task.member} size="sm" />
+                                  <span className="text-xs text-muted-foreground">{task.member.name}</span>
+                                </div>
+                              )}
                               <p className="text-sm font-medium line-clamp-2 mb-2">
                                 {task.title}
                               </p>
@@ -164,7 +183,7 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
                   )}
                 </Droppable>
 
-                <AddTaskInline memberId={selectedMemberId} status={column.id} />
+                {!isAllView && <AddTaskInline memberId={selectedMemberId} status={column.id} />}
               </div>
             )
           })}

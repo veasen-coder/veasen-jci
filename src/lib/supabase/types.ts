@@ -37,6 +37,34 @@ export interface DailySummary {
   generated_at: string
 }
 
+export interface ActionItem {
+  id: string
+  text: string
+  assignee_id: string | null
+  done: boolean
+}
+
+export interface Attachment {
+  name: string
+  url: string
+  size: number
+  type: string
+  uploaded_at: string
+}
+
+export interface MeetingMinutes {
+  id: string
+  title: string
+  meeting_date: string
+  attendee_ids: string[]
+  agenda: string | null
+  notes: string | null
+  action_items: ActionItem[]
+  attachments: Attachment[]
+  created_at: string
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {

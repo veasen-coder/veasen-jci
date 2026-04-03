@@ -62,8 +62,31 @@ CREATE POLICY "Allow all access to daily_summaries" ON daily_summaries FOR ALL U
 -- Enable realtime for tasks
 ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
 
+-- Meeting minutes table
+CREATE TABLE IF NOT EXISTS meeting_minutes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  meeting_date date NOT NULL,
+  attendee_ids uuid[] NOT NULL DEFAULT '{}',
+  agenda text,
+  notes text,
+  action_items jsonb DEFAULT '[]',
+  attachments jsonb DEFAULT '[]',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE meeting_minutes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to meeting_minutes" ON meeting_minutes FOR ALL USING (true) WITH CHECK (true);
+
+CREATE TRIGGER update_meeting_minutes_updated_at
+  BEFORE UPDATE ON meeting_minutes
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_tasks_member_id ON tasks(member_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_updated_at ON tasks(updated_at);
+CREATE INDEX IF NOT EXISTS idx_meeting_minutes_date ON meeting_minutes(meeting_date DESC);

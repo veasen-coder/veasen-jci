@@ -56,13 +56,20 @@ export function getMemberStats(tasks: Task[], member: Member) {
   const inProgress = memberTasks.filter((t) => t.status === 'in-progress').length
   const active = memberTasks.filter((t) => t.status !== 'done').length
 
+  const total = memberTasks.length
+  const todo = memberTasks.filter((t) => t.status === 'todo').length
+
   return {
-    total: memberTasks.length,
+    total,
     done,
     blocked,
     inProgress,
+    todo,
     active,
-    progress: memberTasks.length > 0 ? (done / memberTasks.length) * 100 : 0,
+    donePercent: total > 0 ? (done / total) * 100 : 0,
+    inProgressPercent: total > 0 ? (inProgress / total) * 100 : 0,
+    blockedPercent: total > 0 ? (blocked / total) * 100 : 0,
+    todoPercent: total > 0 ? (todo / total) * 100 : 0,
   }
 }
 

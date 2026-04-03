@@ -315,8 +315,7 @@ function GoogleSheetsIntegration() {
       <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5">
         <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
         <span>
-          Requires Google service account credentials in your environment variables.
-          Set GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY in .env.local.
+          Google Sheets requires admin setup. Contact your team lead if this feature isn&apos;t working.
         </span>
       </div>
     </div>

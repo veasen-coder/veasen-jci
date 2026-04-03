@@ -9,12 +9,14 @@ import { BoardsTab } from './BoardsTab'
 import { PriorityTab } from './PriorityTab'
 import { SummaryTab } from './SummaryTab'
 import { IntegrationsTab } from './IntegrationsTab'
+import { MeetingMinutesTab } from './MeetingMinutesTab'
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
-  { id: 'boards', label: 'Individual Boards' },
   { id: 'priority', label: 'Priority & Blockers' },
   { id: 'summary', label: 'Daily Summary' },
+  { id: 'boards', label: 'Individual Boards' },
+  { id: 'meetings', label: 'Meeting Minutes' },
   { id: 'integrations', label: 'Integrations' },
 ] as const
 
@@ -37,9 +39,10 @@ export function DashboardShell() {
 
   return (
     <div className="min-h-screen bg-background">
+      <div className="h-1 bg-gradient-to-r from-violet-600 to-blue-600" />
       <header className="border-b border-border px-4 sm:px-6 py-4">
-        <h1 className="text-lg font-medium tracking-tight">
-          JCI Youth IICS &middot; Command Dashboard
+        <h1 className="text-xl font-semibold tracking-tight">
+          JCI Youth IICS <span className="text-violet-600">&middot;</span> Command Dashboard
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           {getTodayDisplayKL()}
@@ -69,6 +72,7 @@ export function DashboardShell() {
         {activeTab === 'boards' && <BoardsTab tasks={tasks} members={members} loading={loading} />}
         {activeTab === 'priority' && <PriorityTab tasks={tasks} members={members} loading={loading} />}
         {activeTab === 'summary' && <SummaryTab tasks={tasks} members={members} loading={loading} />}
+        {activeTab === 'meetings' && <MeetingMinutesTab members={members} />}
         {activeTab === 'integrations' && <IntegrationsTab />}
       </main>
     </div>
