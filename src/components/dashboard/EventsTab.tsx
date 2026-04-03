@@ -143,8 +143,9 @@ export function EventsTab({ members }: EventsTabProps) {
                 }`}
               >
                 {/* Poster area */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 {event.poster_url ? (
-                  <div className="aspect-video bg-muted relative overflow-hidden">
+                  <div className="aspect-[4/5] bg-muted relative overflow-hidden">
                     <img
                       src={event.poster_url}
                       alt={event.title}
@@ -152,7 +153,7 @@ export function EventsTab({ members }: EventsTabProps) {
                     />
                   </div>
                 ) : (
-                  <div className="aspect-video bg-gradient-to-br from-violet-100 to-blue-100 flex items-center justify-center">
+                  <div className="aspect-[4/5] bg-gradient-to-br from-violet-100 to-blue-100 flex items-center justify-center">
                     <ImageIcon className="h-10 w-10 text-violet-300" />
                   </div>
                 )}

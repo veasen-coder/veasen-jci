@@ -39,13 +39,13 @@ const platformColors: Record<MarketingPlatform, string> = {
 }
 
 const statusColors: Record<MarketingStatus, string> = {
-  draft: 'bg-gray-100 text-gray-700',
+  draft: 'bg-amber-100 text-amber-700',
   scheduled: 'bg-blue-100 text-blue-700',
   posted: 'bg-green-100 text-green-700',
 }
 
 const statusLabels: Record<MarketingStatus, string> = {
-  draft: 'Draft',
+  draft: 'Planning',
   scheduled: 'Scheduled',
   posted: 'Posted',
 }
@@ -347,13 +347,13 @@ function PostForm({
             onChange={(e) => setStatus(e.target.value as MarketingStatus)}
             className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm"
           >
-            <option value="draft">Draft</option>
+            <option value="draft">Planning</option>
             <option value="scheduled">Scheduled</option>
             <option value="posted">Posted</option>
           </select>
         </div>
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">Due Date</label>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Post Date</label>
           <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </div>
         <div>
@@ -372,9 +372,9 @@ function PostForm({
       </div>
 
       <div>
-        <label className="text-xs font-medium text-muted-foreground mb-1 block">Description</label>
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">Caption / Brief</label>
         <Textarea
-          placeholder="Post content or brief..."
+          placeholder="Post caption, content brief, or planning notes..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
@@ -383,13 +383,14 @@ function PostForm({
       </div>
 
       <div>
-        <label className="text-xs font-medium text-muted-foreground mb-1 block">Content URL (optional)</label>
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">Canva / Design Link</label>
         <Input
           type="url"
-          placeholder="https://canva.com/design/..."
+          placeholder="https://www.canva.com/design/..."
           value={contentUrl}
           onChange={(e) => setContentUrl(e.target.value)}
         />
+        <p className="text-[10px] text-muted-foreground mt-1">Paste your Canva design link or any content URL</p>
       </div>
 
       <div className="flex items-center gap-2 pt-2">
@@ -469,13 +470,13 @@ function PostEditSection({
             onChange={(e) => { setStatus(e.target.value as MarketingStatus); markDirty() }}
             className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm"
           >
-            <option value="draft">Draft</option>
+            <option value="draft">Planning</option>
             <option value="scheduled">Scheduled</option>
             <option value="posted">Posted</option>
           </select>
         </div>
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">Due Date</label>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Post Date</label>
           <Input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); markDirty() }} className="text-sm" />
         </div>
         <div>
@@ -494,22 +495,22 @@ function PostEditSection({
       </div>
 
       <div>
-        <label className="text-xs font-medium text-muted-foreground mb-1 block">Description</label>
-        <Textarea value={description} onChange={(e) => { setDescription(e.target.value); markDirty() }} rows={3} className="resize-none text-sm" />
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">Caption / Brief</label>
+        <Textarea value={description} onChange={(e) => { setDescription(e.target.value); markDirty() }} rows={3} className="resize-none text-sm" placeholder="Post caption, content brief, or planning notes..." />
       </div>
 
       <div>
-        <label className="text-xs font-medium text-muted-foreground mb-1 block">Content URL</label>
-        <Input type="url" value={contentUrl} onChange={(e) => { setContentUrl(e.target.value); markDirty() }} placeholder="https://..." className="text-sm" />
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">Canva / Design Link</label>
+        <Input type="url" value={contentUrl} onChange={(e) => { setContentUrl(e.target.value); markDirty() }} placeholder="https://www.canva.com/design/..." className="text-sm" />
         {post.content_url && (
           <a
             href={post.content_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1"
+            className="flex items-center gap-2 rounded-lg bg-blue-50 p-2.5 text-sm text-blue-700 hover:bg-blue-100 transition-colors mt-2"
           >
-            <ExternalLink className="h-3 w-3" />
-            Open content link
+            <ExternalLink className="h-4 w-4 shrink-0" />
+            <span className="truncate">Open in Canva</span>
           </a>
         )}
       </div>
