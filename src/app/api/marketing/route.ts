@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       category: body.category || 'festival',
       platform: body.platform || 'instagram',
       status: body.status || 'draft',
+      start_date: body.start_date || null,
       due_date: body.due_date || null,
       description: body.description || null,
       assigned_to: body.assigned_to || null,

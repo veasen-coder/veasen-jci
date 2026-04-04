@@ -50,6 +50,7 @@ export interface MarketingPost {
   category: MarketingCategory
   platform: MarketingPlatform
   status: MarketingStatus
+  start_date: string | null
   due_date: string | null
   description: string | null
   assigned_to: string | null

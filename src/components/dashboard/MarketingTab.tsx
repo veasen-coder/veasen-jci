@@ -20,6 +20,7 @@ import {
   PartyPopper,
   Image as ImageIcon,
   Film,
+  GanttChart,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -34,10 +35,13 @@ const platformLabels: Record<MarketingPlatform, string> = {
 
 const allPlatforms: MarketingPlatform[] = ['instagram', 'facebook', 'tiktok', 'twitter', 'linkedin', 'other']
 
-const sectionTabs = [
-  { id: 'festival' as MarketingCategory, label: 'Festival Dates', icon: PartyPopper },
-  { id: 'event_poster' as MarketingCategory, label: 'Event Posters', icon: ImageIcon },
-  { id: 'club_promotion' as MarketingCategory, label: 'Club Promotion', icon: Film },
+type SectionId = MarketingCategory | 'roadmap'
+
+const sectionTabs: { id: SectionId; label: string; icon: typeof PartyPopper }[] = [
+  { id: 'roadmap', label: 'Roadmap', icon: GanttChart },
+  { id: 'festival', label: 'Festival Dates', icon: PartyPopper },
+  { id: 'event_poster', label: 'Event Posters', icon: ImageIcon },
+  { id: 'club_promotion', label: 'Club Promotion', icon: Film },
 ]
 
 interface MarketingTabProps {
@@ -50,7 +54,7 @@ export function MarketingTab({ members }: MarketingTabProps) {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [activeSection, setActiveSection] = useState<MarketingCategory>('festival')
+  const [activeSection, setActiveSection] = useState<SectionId>('roadmap')
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -73,7 +77,7 @@ export function MarketingTab({ members }: MarketingTabProps) {
       .catch(() => {})
   }, [fetchPosts])
 
-  const sectionPosts = posts.filter((p) => p.category === activeSection)
+  const sectionPosts = activeSection === 'roadmap' ? posts : posts.filter((p) => p.category === activeSection)
 
   const handleDelete = async (id: string) => {
     try {
@@ -115,16 +119,18 @@ export function MarketingTab({ members }: MarketingTabProps) {
           <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Marketing</h2>
           <p className="text-xs text-muted-foreground mt-1">{posts.length} item{posts.length !== 1 ? 's' : ''} tracked</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-2" disabled={showForm}>
-          <Plus className="h-4 w-4" />
-          Add New
-        </Button>
+        {activeSection !== 'roadmap' && (
+          <Button onClick={() => setShowForm(true)} className="gap-2" disabled={showForm}>
+            <Plus className="h-4 w-4" />
+            Add New
+          </Button>
+        )}
       </div>
 
       {/* Section tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {sectionTabs.map((tab) => {
-          const count = posts.filter((p) => p.category === tab.id).length
+          const count = tab.id === 'roadmap' ? posts.length : posts.filter((p) => p.category === tab.id).length
           return (
             <button
               key={tab.id}
@@ -144,9 +150,9 @@ export function MarketingTab({ members }: MarketingTabProps) {
       </div>
 
       {/* Create form */}
-      {showForm && (
+      {showForm && activeSection !== 'roadmap' && (
         <CreateForm
-          category={activeSection}
+          category={activeSection as MarketingCategory}
           members={members}
           events={events}
           onSave={(post) => {
@@ -159,6 +165,14 @@ export function MarketingTab({ members }: MarketingTabProps) {
       )}
 
       {/* Section content */}
+      {activeSection === 'roadmap' && (
+        <RoadmapTimeline
+          posts={posts}
+          members={members}
+          onUpdate={handleUpdate}
+        />
+      )}
+
       {activeSection === 'festival' && (
         <FestivalSection
           posts={sectionPosts}
@@ -510,6 +524,7 @@ function CreateForm({
   onCancel: () => void
 }) {
   const [title, setTitle] = useState('')
+  const [startDate, setStartDate] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [description, setDescription] = useState('')
   const [contentUrl, setContentUrl] = useState('')
@@ -519,9 +534,9 @@ function CreateForm({
   const [submitting, setSubmitting] = useState(false)
 
   const labels = {
-    festival: { title: 'New Festival Date', titlePlaceholder: 'e.g. Hari Raya Aidilfitri', dateName: 'Festival Date' },
-    event_poster: { title: 'New Event Poster', titlePlaceholder: 'e.g. Entrepreneur Talk Poster', dateName: 'Deadline' },
-    club_promotion: { title: 'New Promotion', titlePlaceholder: 'e.g. JCI Youth Recruitment Reel', dateName: 'Post Date' },
+    festival: { title: 'New Festival Date', titlePlaceholder: 'e.g. Hari Raya Aidilfitri', dateName: 'Festival Date', startName: 'Start Prep' },
+    event_poster: { title: 'New Event Poster', titlePlaceholder: 'e.g. Entrepreneur Talk Poster', dateName: 'Deadline', startName: 'Start Date' },
+    club_promotion: { title: 'New Promotion', titlePlaceholder: 'e.g. JCI Youth Recruitment Reel', dateName: 'Post Date', startName: 'Start Date' },
   }
   const l = labels[category]
 
@@ -538,6 +553,7 @@ function CreateForm({
           category,
           platform,
           status: 'draft',
+          start_date: startDate || null,
           due_date: dueDate || null,
           description: description.trim() || null,
           assigned_to: assignedTo || null,
@@ -564,10 +580,14 @@ function CreateForm({
         <button type="button" onClick={onCancel}><X className="h-4 w-4 text-muted-foreground" /></button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Title</label>
           <Input placeholder={l.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} autoFocus required />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">{l.startName}</label>
+          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </div>
         <div>
           <label className="text-xs font-medium text-muted-foreground mb-1 block">{l.dateName}</label>
@@ -640,6 +660,7 @@ function EditSection({
   onDelete: (id: string) => void
 }) {
   const [title, setTitle] = useState(post.title)
+  const [startDate, setStartDate] = useState(post.start_date || '')
   const [dueDate, setDueDate] = useState(post.due_date || '')
   const [description, setDescription] = useState(post.description || '')
   const [contentUrl, setContentUrl] = useState(post.content_url || '')
@@ -653,6 +674,7 @@ function EditSection({
   const handleSave = () => {
     onUpdate(post.id, {
       title: title.trim(),
+      start_date: startDate || null,
       due_date: dueDate || null,
       description: description.trim() || null,
       content_url: contentUrl.trim() || null,
@@ -667,13 +689,17 @@ function EditSection({
 
   return (
     <div className="border-t border-border p-4 space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Title</label>
           <Input value={title} onChange={(e) => { setTitle(e.target.value); markDirty() }} className="text-sm" />
         </div>
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">Date</label>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Start Date</label>
+          <Input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); markDirty() }} className="text-sm" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Due Date</label>
           <Input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); markDirty() }} className="text-sm" />
         </div>
       </div>
@@ -739,6 +765,277 @@ function EditSection({
         <Button variant="ghost" size="sm" onClick={() => onDelete(post.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1">
           <Trash2 className="h-3.5 w-3.5" />Delete
         </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ============= ROADMAP GANTT TIMELINE ============= */
+function RoadmapTimeline({
+  posts,
+  members,
+}: {
+  posts: MarketingPost[]
+  members: Member[]
+  onUpdate: (id: string, updates: Partial<MarketingPost>) => void
+}) {
+  // Only show posts with at least a due_date
+  const timelinePosts = posts.filter((p) => p.due_date)
+
+  if (timelinePosts.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-12 text-center">
+        <GanttChart className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+        <p className="text-sm text-muted-foreground">No items with dates yet</p>
+        <p className="text-xs text-muted-foreground mt-1">Add start & due dates to your marketing items to see them on the roadmap</p>
+      </div>
+    )
+  }
+
+  // Calculate timeline range
+  const allDates = timelinePosts.flatMap((p) => {
+    const dates: number[] = []
+    if (p.start_date) dates.push(new Date(p.start_date + 'T00:00:00').getTime())
+    if (p.due_date) dates.push(new Date(p.due_date + 'T00:00:00').getTime())
+    return dates
+  })
+  const today = new Date()
+  allDates.push(today.getTime())
+
+  const minDate = new Date(Math.min(...allDates))
+  const maxDate = new Date(Math.max(...allDates))
+
+  // Extend range: start from beginning of min month, end at end of max month + 1
+  const rangeStart = new Date(minDate.getFullYear(), minDate.getMonth(), 1)
+  const rangeEnd = new Date(maxDate.getFullYear(), maxDate.getMonth() + 2, 0)
+
+  const totalDays = Math.ceil((rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24))
+
+  // Generate month headers
+  const months: { label: string; startDay: number; days: number }[] = []
+  const cursor = new Date(rangeStart)
+  while (cursor <= rangeEnd) {
+    const monthStart = new Date(cursor)
+    const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0)
+    const effectiveEnd = monthEnd > rangeEnd ? rangeEnd : monthEnd
+    const startDay = Math.ceil((monthStart.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24))
+    const endDay = Math.ceil((effectiveEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24))
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    months.push({
+      label: `${monthNames[cursor.getMonth()]} ${cursor.getFullYear()}`,
+      startDay,
+      days: endDay - startDay + 1,
+    })
+    cursor.setMonth(cursor.getMonth() + 1)
+    cursor.setDate(1)
+  }
+
+  // Generate week markers
+  const weeks: number[] = []
+  const weekCursor = new Date(rangeStart)
+  // Move to first Monday
+  while (weekCursor.getDay() !== 1) weekCursor.setDate(weekCursor.getDate() + 1)
+  while (weekCursor <= rangeEnd) {
+    const day = Math.ceil((weekCursor.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24))
+    weeks.push(day)
+    weekCursor.setDate(weekCursor.getDate() + 7)
+  }
+
+  // Today marker position
+  const todayDay = Math.ceil((today.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24))
+  const todayPct = (todayDay / totalDays) * 100
+
+  // Category groups
+  const categoryConfig: Record<MarketingCategory, { label: string; color: string; bgColor: string; barColor: string }> = {
+    festival: { label: 'Festival Dates', color: 'text-amber-700', bgColor: 'bg-amber-50', barColor: 'bg-amber-400' },
+    event_poster: { label: 'Event Posters', color: 'text-violet-700', bgColor: 'bg-violet-50', barColor: 'bg-violet-400' },
+    club_promotion: { label: 'Club Promotion', color: 'text-teal-700', bgColor: 'bg-teal-50', barColor: 'bg-teal-400' },
+  }
+
+  const categories: MarketingCategory[] = ['festival', 'event_poster', 'club_promotion']
+
+  const getBarPosition = (post: MarketingPost) => {
+    const end = new Date(post.due_date! + 'T00:00:00')
+    const start = post.start_date
+      ? new Date(post.start_date + 'T00:00:00')
+      : new Date(end.getTime() - 14 * 24 * 60 * 60 * 1000) // Default 2 weeks before due
+
+    const startDay = Math.max(0, Math.ceil((start.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24)))
+    const endDay = Math.min(totalDays, Math.ceil((end.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24)))
+
+    return {
+      left: (startDay / totalDays) * 100,
+      width: Math.max(((endDay - startDay) / totalDays) * 100, 1.5), // minimum visible width
+    }
+  }
+
+  const getMemberById = (id: string) => members.find((m) => m.id === id)
+
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-border bg-muted/30">
+        <div className="flex items-center gap-2">
+          <GanttChart className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Marketing Roadmap</h3>
+          <span className="text-xs text-muted-foreground">({timelinePosts.length} items)</span>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: Math.max(800, totalDays * 6) }}>
+          {/* Month headers */}
+          <div className="flex border-b border-border">
+            <div className="w-48 shrink-0 px-4 py-2 border-r border-border bg-muted/20">
+              <span className="text-xs font-medium text-muted-foreground">Activity</span>
+            </div>
+            <div className="flex-1 relative flex">
+              {months.map((month, i) => (
+                <div
+                  key={i}
+                  className="border-r border-border px-2 py-2 text-center"
+                  style={{ width: `${(month.days / totalDays) * 100}%` }}
+                >
+                  <span className="text-xs font-semibold text-foreground">{month.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Week sub-headers */}
+          <div className="flex border-b border-border">
+            <div className="w-48 shrink-0 border-r border-border bg-muted/20" />
+            <div className="flex-1 relative h-5">
+              {weeks.map((day, i) => (
+                <div
+                  key={i}
+                  className="absolute top-0 text-center"
+                  style={{ left: `${(day / totalDays) * 100}%`, width: `${(7 / totalDays) * 100}%` }}
+                >
+                  <span className="text-[10px] text-muted-foreground/60">W{i + 1}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Category groups */}
+          {categories.map((cat) => {
+            const catPosts = timelinePosts
+              .filter((p) => p.category === cat)
+              .sort((a, b) => (a.start_date || a.due_date || '').localeCompare(b.start_date || b.due_date || ''))
+
+            if (catPosts.length === 0) return null
+            const config = categoryConfig[cat]
+
+            return (
+              <div key={cat}>
+                {/* Category label row */}
+                <div className={`flex border-b border-border ${config.bgColor}`}>
+                  <div className="w-48 shrink-0 px-4 py-1.5 border-r border-border">
+                    <span className={`text-xs font-bold uppercase tracking-wider ${config.color}`}>
+                      {config.label}
+                    </span>
+                  </div>
+                  <div className="flex-1 relative">
+                    {/* Today line in header */}
+                    {todayPct > 0 && todayPct < 100 && (
+                      <div className="absolute top-0 bottom-0 w-px bg-red-400 z-10" style={{ left: `${todayPct}%` }} />
+                    )}
+                  </div>
+                </div>
+
+                {/* Activity rows */}
+                {catPosts.map((post) => {
+                  const bar = getBarPosition(post)
+                  const assignee = post.assigned_to ? getMemberById(post.assigned_to) : null
+
+                  return (
+                    <div key={post.id} className="flex border-b border-border hover:bg-accent/20 transition-colors group">
+                      {/* Label */}
+                      <div className="w-48 shrink-0 px-4 py-2.5 border-r border-border flex items-center gap-2 min-h-[44px]">
+                        {post.poster_done && (
+                          <div className="w-4 h-4 rounded bg-green-500 flex items-center justify-center shrink-0">
+                            <Check className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-xs font-medium truncate ${post.poster_done ? 'line-through text-muted-foreground' : ''}`}>
+                            {post.title}
+                          </p>
+                          {post.due_date && (
+                            <p className="text-[10px] text-muted-foreground">
+                              {post.start_date && `${formatDateKL(post.start_date + 'T00:00:00', 'MMM dd')} - `}
+                              {formatDateKL(post.due_date + 'T00:00:00', 'MMM dd')}
+                            </p>
+                          )}
+                        </div>
+                        {assignee && <MemberAvatar member={assignee} size="sm" />}
+                      </div>
+
+                      {/* Timeline bar */}
+                      <div className="flex-1 relative py-2">
+                        {/* Week grid lines */}
+                        {weeks.map((day, i) => (
+                          <div
+                            key={i}
+                            className="absolute top-0 bottom-0 border-l border-border/30"
+                            style={{ left: `${(day / totalDays) * 100}%` }}
+                          />
+                        ))}
+
+                        {/* Today line */}
+                        {todayPct > 0 && todayPct < 100 && (
+                          <div className="absolute top-0 bottom-0 w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%` }} />
+                        )}
+
+                        {/* The bar */}
+                        <div
+                          className={`absolute top-2 bottom-2 rounded-md ${config.barColor} ${
+                            post.poster_done ? 'opacity-50' : 'opacity-90'
+                          } shadow-sm transition-all group-hover:opacity-100 group-hover:shadow-md flex items-center justify-center overflow-hidden`}
+                          style={{ left: `${bar.left}%`, width: `${bar.width}%` }}
+                          title={`${post.title}${post.start_date ? ` | ${post.start_date}` : ''} → ${post.due_date}`}
+                        >
+                          {bar.width > 8 && (
+                            <span className="text-[10px] font-semibold text-white truncate px-2">
+                              {post.title}
+                            </span>
+                          )}
+                          {/* Diamond milestone at end */}
+                          <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rotate-45 bg-yellow-400 border border-yellow-500 shadow-sm" />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
+
+          {/* Today legend */}
+          <div className="px-4 py-2 border-t border-border bg-muted/20 flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-0.5 bg-red-400" />
+              <span className="text-[10px] text-muted-foreground">Today</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rotate-45 bg-yellow-400 border border-yellow-500" />
+              <span className="text-[10px] text-muted-foreground">Due Date</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3.5 h-3.5 rounded bg-green-500 flex items-center justify-center">
+                <Check className="h-2.5 w-2.5 text-white" />
+              </div>
+              <span className="text-[10px] text-muted-foreground">Done</span>
+            </div>
+            {categories.map((cat) => (
+              <div key={cat} className="flex items-center gap-1.5">
+                <div className={`w-3 h-2 rounded-sm ${categoryConfig[cat].barColor}`} />
+                <span className="text-[10px] text-muted-foreground">{categoryConfig[cat].label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
