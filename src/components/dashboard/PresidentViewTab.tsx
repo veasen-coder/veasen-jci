@@ -1,14 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import type { TaskWithMember, Member } from '@/lib/supabase/types'
+import { useTaskStore } from '@/lib/store/useTaskStore'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 import { MemberAvatar } from '@/components/shared/MemberAvatar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { getTaskCounts, getMemberStats, getDoneThisWeek, filterByMember, filterOverdue } from '@/lib/utils/taskHelpers'
 import { formatDueDate, isOverdue } from '@/lib/utils/dateHelpers'
-import { Loader2, AlertTriangle, CheckCircle2, Clock, Shield } from 'lucide-react'
+import { Loader2, AlertTriangle, CheckCircle2, Clock, Shield, Check, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface PresidentViewTabProps {
   tasks: TaskWithMember[]
@@ -75,29 +79,16 @@ export function PresidentViewTab({ tasks, members, loading }: PresidentViewTabPr
           {qcTasks.length > 0 ? (
             <div className="space-y-3">
               {qcTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-violet-50/50 border border-violet-100"
-                >
-                  <MemberAvatar member={task.member} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{task.title}</p>
-                    <p className="text-xs text-muted-foreground">{task.member.name} &middot; {task.member.role}</p>
-                  </div>
-                  <StatusBadge status={task.status} />
-                  <PriorityBadge priority={task.priority} />
-                  {task.due_date && (
-                    <span className={`text-xs shrink-0 ${isOverdue(task.due_date) && task.status !== 'done' ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
-                      {formatDueDate(task.due_date)}
-                    </span>
-                  )}
-                </div>
+                <QCRequestCard key={task.id} task={task} />
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              No QC requests — all clear
-            </p>
+            <div className="text-center py-8">
+              <CheckCircle2 className="h-8 w-8 text-green-400 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">
+                No QC requests — all clear
+              </p>
+            </div>
           )}
         </div>
       </section>
@@ -209,6 +200,78 @@ export function PresidentViewTab({ tasks, members, loading }: PresidentViewTabPr
           })}
         </div>
       </section>
+    </div>
+  )
+}
+
+/* ============= QC REQUEST CARD ============= */
+function QCRequestCard({ task }: { task: TaskWithMember }) {
+  const updateTask = useTaskStore((s) => s.updateTask)
+  const [acting, setActing] = useState(false)
+
+  const handleApprove = async () => {
+    setActing(true)
+    try {
+      await updateTask(task.id, { status: 'done', needs_qc: false })
+      toast.success(`"${task.title}" approved & marked as done`)
+    } catch {
+      toast.error('Failed to approve task')
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleReject = async () => {
+    setActing(true)
+    try {
+      await updateTask(task.id, { needs_qc: false })
+      toast.info(`"${task.title}" sent back for revision`)
+    } catch {
+      toast.error('Failed to reject task')
+    } finally {
+      setActing(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-violet-50/50 border border-violet-100">
+      <MemberAvatar member={task.member} size="sm" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{task.title}</p>
+        <p className="text-xs text-muted-foreground">
+          {task.member.name} &middot; {task.member.role}
+        </p>
+        {task.description && (
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
+        )}
+      </div>
+      <StatusBadge status={task.status} />
+      {task.due_date && (
+        <span className={`text-xs shrink-0 ${isOverdue(task.due_date) && task.status !== 'done' ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
+          {formatDueDate(task.due_date)}
+        </span>
+      )}
+      <div className="flex items-center gap-1.5 shrink-0">
+        <Button
+          size="sm"
+          onClick={handleApprove}
+          disabled={acting}
+          className="gap-1 h-8 bg-green-600 hover:bg-green-700 text-white"
+        >
+          <Check className="h-3.5 w-3.5" />
+          Done
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleReject}
+          disabled={acting}
+          className="gap-1 h-8 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+        >
+          <X className="h-3.5 w-3.5" />
+          Revise
+        </Button>
+      </div>
     </div>
   )
 }
