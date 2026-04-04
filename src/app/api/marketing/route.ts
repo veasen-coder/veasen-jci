@@ -25,12 +25,15 @@ export async function POST(request: NextRequest) {
     .from('marketing_posts')
     .insert({
       title: body.title,
-      platform: body.platform,
+      category: body.category || 'festival',
+      platform: body.platform || 'instagram',
       status: body.status || 'draft',
       due_date: body.due_date || null,
       description: body.description || null,
       assigned_to: body.assigned_to || null,
       content_url: body.content_url || null,
+      event_id: body.event_id || null,
+      poster_done: body.poster_done || false,
     })
     .select()
     .single()
