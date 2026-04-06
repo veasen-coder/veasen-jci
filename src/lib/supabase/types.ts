@@ -100,6 +100,19 @@ export interface MeetingMinutes {
   updated_at: string
 }
 
+export type ResourceCategory = 'intima' | 'department' | 'claim' | 'template' | 'general'
+
+export interface Resource {
+  id: string
+  title: string
+  url: string
+  category: ResourceCategory
+  description: string | null
+  icon: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {

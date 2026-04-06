@@ -12,6 +12,7 @@ import { BoardsTab } from './BoardsTab'
 import { MeetingMinutesTab } from './MeetingMinutesTab'
 import { MarketingTab } from './MarketingTab'
 import { IntegrationsTab } from './IntegrationsTab'
+import { ResourcesTab } from './ResourcesTab'
 import { Shield, X, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,6 +23,7 @@ const tabs = [
   { id: 'boards', label: 'Individual Boards' },
   { id: 'meetings', label: 'Meeting Minutes' },
   { id: 'marketing', label: 'Marketing' },
+  { id: 'resources', label: 'Resources' },
   { id: 'integrations', label: 'Integrations' },
 ] as const
 
@@ -129,6 +131,7 @@ export function DashboardShell() {
         {activeTab === 'boards' && <BoardsTab tasks={tasks} members={members} loading={loading} />}
         {activeTab === 'meetings' && <MeetingMinutesTab members={members} />}
         {activeTab === 'marketing' && <MarketingTab members={members} />}
+        {activeTab === 'resources' && <ResourcesTab />}
         {activeTab === 'integrations' && <IntegrationsTab />}
       </main>
 
