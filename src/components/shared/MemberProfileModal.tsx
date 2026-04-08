@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import type { Member, TaskWithMember, TaskStatus } from '@/lib/supabase/types'
+import type { TaskWithMember, TaskStatus } from '@/lib/supabase/types'
 import { getMemberStats, filterByMember } from '@/lib/utils/taskHelpers'
 import { useTaskStore } from '@/lib/store/useTaskStore'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 interface MemberProfileModalProps {
-  member: Member | null
+  memberId: string | null
   tasks: TaskWithMember[]
   onClose: () => void
 }
@@ -24,16 +24,20 @@ const statusSections: { status: TaskStatus; label: string }[] = [
   { status: 'done', label: 'Done' },
 ]
 
-export function MemberProfileModal({ member, tasks, onClose }: MemberProfileModalProps) {
+export function MemberProfileModal({ memberId, tasks, onClose }: MemberProfileModalProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
+  const members = useTaskStore((s) => s.members)
   const fetchMembers = useTaskStore((s) => s.fetchMembers)
 
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editRole, setEditRole] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // Always read fresh member from the store
+  const member = memberId ? members.find((m) => m.id === memberId) || null : null
 
   if (!member) return null
 

@@ -17,7 +17,6 @@ import { Shield, X, Lock } from 'lucide-react'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { ActivityFeed } from '@/components/shared/ActivityFeed'
 import { MemberProfileModal } from '@/components/shared/MemberProfileModal'
-import type { Member } from '@/lib/supabase/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -44,7 +43,7 @@ export function DashboardShell() {
   const { tasks, loading } = useTasks()
   const members = useMembers()
 
-  const [profileMember, setProfileMember] = useState<Member | null>(null)
+  const [profileMemberId, setProfileMemberId] = useState<string | null>(null)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState(false)
@@ -135,9 +134,9 @@ export function DashboardShell() {
 
       <main className="px-4 sm:px-6 py-6 max-w-[1400px] mx-auto">
         {activeTab === 'overview' && <OverviewTab tasks={tasks} members={members} loading={loading} />}
-        {activeTab === 'president' && presidentUnlocked && <PresidentViewTab tasks={tasks} members={members} loading={loading} onMemberClick={(member) => setProfileMember(member)} />}
+        {activeTab === 'president' && presidentUnlocked && <PresidentViewTab tasks={tasks} members={members} loading={loading} onMemberClick={(member) => setProfileMemberId(member.id)} />}
         {activeTab === 'events' && <EventsTab members={members} />}
-        {activeTab === 'boards' && <BoardsTab tasks={tasks} members={members} loading={loading} onMemberClick={(member) => setProfileMember(member)} />}
+        {activeTab === 'boards' && <BoardsTab tasks={tasks} members={members} loading={loading} onMemberClick={(member) => setProfileMemberId(member.id)} />}
         {activeTab === 'meetings' && <MeetingMinutesTab members={members} />}
         {activeTab === 'marketing' && <MarketingTab members={members} />}
         {activeTab === 'resources' && <ResourcesTab />}
@@ -146,9 +145,9 @@ export function DashboardShell() {
 
       {/* Member Profile Modal */}
       <MemberProfileModal
-        member={profileMember}
+        memberId={profileMemberId}
         tasks={tasks}
-        onClose={() => setProfileMember(null)}
+        onClose={() => setProfileMemberId(null)}
       />
 
       {/* Password Modal */}
