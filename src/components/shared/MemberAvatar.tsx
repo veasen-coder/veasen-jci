@@ -2,11 +2,12 @@ import type { Member } from '@/lib/supabase/types'
 
 interface MemberAvatarProps {
   member: Member
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
   onClick?: () => void
 }
 
 const sizeClasses = {
+  xs: 'h-[20px] w-[20px] text-[8px]',
   sm: 'h-[26px] w-[26px] text-[10px]',
   md: 'h-[36px] w-[36px] text-xs',
   lg: 'h-[44px] w-[44px] text-sm',

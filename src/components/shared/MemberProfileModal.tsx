@@ -1,12 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import type { Member, TaskWithMember, TaskStatus } from '@/lib/supabase/types'
 import { getMemberStats, filterByMember } from '@/lib/utils/taskHelpers'
+import { useTaskStore } from '@/lib/store/useTaskStore'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { DueDateBadge } from '@/components/shared/DueDateBadge'
-import { X, Shield, ArrowRight } from 'lucide-react'
+import { X, Shield, ArrowRight, Pencil, Check, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface MemberProfileModalProps {
   member: Member | null
@@ -25,6 +28,12 @@ export function MemberProfileModal({ member, tasks, onClose }: MemberProfileModa
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
+  const fetchMembers = useTaskStore((s) => s.fetchMembers)
+
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editRole, setEditRole] = useState('')
+  const [saving, setSaving] = useState(false)
 
   if (!member) return null
 
@@ -37,6 +46,48 @@ export function MemberProfileModal({ member, tasks, onClose }: MemberProfileModa
     params.set('member', member.id)
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
     onClose()
+  }
+
+  const handleStartEdit = () => {
+    setEditName(member.name)
+    setEditRole(member.role)
+    setEditing(true)
+  }
+
+  const handleSave = async () => {
+    if (!editName.trim() || !editRole.trim()) return
+    setSaving(true)
+    try {
+      // Generate initials from new name
+      const nameParts = editName.trim().split(/\s+/)
+      const initials = nameParts.length >= 2
+        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+        : editName.trim().substring(0, 2).toUpperCase()
+
+      const res = await fetch(`/api/members/${member.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editName.trim(),
+          role: editRole.trim(),
+          initials,
+        }),
+      })
+      if (!res.ok) throw new Error('Failed to update')
+      // Refresh members in store
+      await fetchMembers()
+      setEditing(false)
+    } catch {
+      // stay in edit mode on error
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditing(false)
+    setEditName('')
+    setEditRole('')
   }
 
   return (
@@ -55,19 +106,79 @@ export function MemberProfileModal({ member, tasks, onClose }: MemberProfileModa
                 className="h-12 w-12 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
                 style={{ backgroundColor: member.bg_hex, color: member.color_hex }}
               >
-                {member.initials}
+                {editing ? (editName.trim().split(/\s+/).length >= 2
+                  ? (editName.trim().split(/\s+/)[0][0] + editName.trim().split(/\s+/).slice(-1)[0][0]).toUpperCase()
+                  : editName.trim().substring(0, 2).toUpperCase()
+                ) : member.initials}
               </div>
-              <div>
-                <h2 className="text-base font-semibold">{member.name}</h2>
-                <p className="text-sm text-muted-foreground">{member.role}</p>
+              <div className="flex-1 min-w-0">
+                {editing ? (
+                  <div className="space-y-1.5">
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Name"
+                      className="h-8 text-sm font-semibold"
+                      autoFocus
+                    />
+                    <Input
+                      value={editRole}
+                      onChange={(e) => setEditRole(e.target.value)}
+                      placeholder="Position / Role"
+                      className="h-8 text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSave()
+                        if (e.key === 'Escape') handleCancelEdit()
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="text-base font-semibold">{member.name}</h2>
+                    <p className="text-sm text-muted-foreground">{member.role}</p>
+                  </>
+                )}
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-1 rounded-md hover:bg-muted transition-colors duration-150"
-            >
-              <X className="h-4 w-4 text-muted-foreground" />
-            </button>
+            <div className="flex items-center gap-1">
+              {editing ? (
+                <>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || !editName.trim() || !editRole.trim()}
+                    className="p-1.5 rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition-colors disabled:opacity-50 dark:bg-green-900/30 dark:text-green-400"
+                  >
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4" />
+                    )}
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleStartEdit}
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                    title="Edit profile"
+                  >
+                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                  <button
+                    onClick={onClose}
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Stats Row */}
@@ -159,7 +270,7 @@ export function MemberProfileModal({ member, tasks, onClose }: MemberProfileModa
                           <PriorityBadge priority={task.priority} />
                           <DueDateBadge dueDate={task.due_date} status={task.status} />
                           {task.needs_qc && (
-                            <span className="flex items-center gap-0.5 bg-violet-100 text-violet-700 rounded-md text-[10px] font-bold px-1.5 py-0.5">
+                            <span className="flex items-center gap-0.5 bg-violet-100 text-violet-700 rounded-md text-[10px] font-bold px-1.5 py-0.5 dark:bg-violet-900/30 dark:text-violet-400">
                               <Shield className="h-3 w-3" />
                               QC
                             </span>
