@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { Event, EventStatus, Member } from '@/lib/supabase/types'
+import type { Event, EventStatus, Member, TaskWithMember } from '@/lib/supabase/types'
+import { StatusBadge } from '@/components/shared/StatusBadge'
+import { MemberAvatar } from '@/components/shared/MemberAvatar'
+import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +18,8 @@ import {
   ChevronDown,
   ChevronRight,
   Trash2,
+  ClipboardList,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -40,19 +45,41 @@ export function EventsTab({ members }: EventsTabProps) {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [taskCounts, setTaskCounts] = useState<Record<string, number>>({})
+
+  const fetchTaskCounts = useCallback(async (eventList: Event[]) => {
+    const counts: Record<string, number> = {}
+    await Promise.all(
+      eventList.map(async (event) => {
+        try {
+          const res = await fetch(`/api/events/${event.id}/tasks`)
+          if (res.ok) {
+            const tasks = await res.json()
+            if (Array.isArray(tasks)) counts[event.id] = tasks.length
+          }
+        } catch {
+          // silently ignore
+        }
+      })
+    )
+    setTaskCounts(counts)
+  }, [])
 
   const fetchEvents = useCallback(async () => {
     try {
       const res = await fetch('/api/events')
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
-      if (Array.isArray(data)) setEvents(data)
+      if (Array.isArray(data)) {
+        setEvents(data)
+        fetchTaskCounts(data)
+      }
     } catch {
       toast.error('Failed to load events')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [fetchTaskCounts])
 
   useEffect(() => {
     fetchEvents()
@@ -178,22 +205,33 @@ export function EventsTab({ members }: EventsTabProps) {
                     </p>
                   )}
 
-                  {/* Expand toggle */}
-                  <button
-                    onClick={() => setExpandedId(isExpanded ? null : event.id)}
-                    className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                  >
-                    {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-                    {isExpanded ? 'Collapse' : 'Edit details'}
-                  </button>
+                  {/* Task count + Expand toggle */}
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : event.id)}
+                      className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                    >
+                      {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                      {isExpanded ? 'Collapse' : 'Edit details'}
+                    </button>
+                    {(taskCounts[event.id] ?? 0) > 0 && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground bg-muted rounded-md px-2 py-0.5">
+                        <ClipboardList className="h-3 w-3" />
+                        {taskCounts[event.id]} task{taskCounts[event.id] !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
 
                   {/* Expanded edit section */}
                   {isExpanded && (
-                    <EventEditSection
-                      event={event}
-                      onUpdate={(updates) => handleUpdate(event.id, updates)}
-                      onDelete={() => handleDelete(event.id)}
-                    />
+                    <>
+                      <EventEditSection
+                        event={event}
+                        onUpdate={(updates) => handleUpdate(event.id, updates)}
+                        onDelete={() => handleDelete(event.id)}
+                      />
+                      <LinkedTasksSection eventId={event.id} />
+                    </>
                   )}
                 </div>
               </div>
@@ -406,6 +444,69 @@ function EventEditSection({
           Delete
         </Button>
       </div>
+    </div>
+  )
+}
+
+function LinkedTasksSection({ eventId }: { eventId: string }) {
+  const [tasks, setTasks] = useState<TaskWithMember[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    async function fetchLinkedTasks() {
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/events/${eventId}/tasks`)
+        if (!res.ok) throw new Error('Failed to fetch')
+        const data = await res.json()
+        if (!cancelled && Array.isArray(data)) setTasks(data)
+      } catch {
+        // silently ignore
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    fetchLinkedTasks()
+    return () => { cancelled = true }
+  }, [eventId])
+
+  return (
+    <div className="space-y-2 pt-3 border-t border-border">
+      <div className="flex items-center gap-1.5">
+        <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Linked Tasks
+        </span>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center gap-2 py-3 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          Loading tasks...
+        </div>
+      ) : tasks.length === 0 ? (
+        <p className="text-xs text-muted-foreground py-2">No tasks linked to this event</p>
+      ) : (
+        <div className="space-y-1.5">
+          {tasks.map((task) => (
+            <div
+              key={task.id}
+              className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2"
+            >
+              <StatusBadge status={task.status} />
+              <span className="text-xs font-medium truncate flex-1">{task.title}</span>
+              {task.priority === 'high' && <PriorityBadge priority={task.priority} />}
+              {task.member && <MemberAvatar member={task.member} size="sm" />}
+              {task.due_date && (
+                <span className="text-[10px] text-muted-foreground shrink-0">
+                  {formatDateKL(task.due_date + 'T00:00:00', 'dd MMM')}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

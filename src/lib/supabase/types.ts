@@ -113,6 +113,32 @@ export interface Resource {
   updated_at: string
 }
 
+export interface TaskComment {
+  id: string
+  task_id: string
+  member_id: string
+  content: string
+  created_at: string
+}
+
+export interface TaskCommentWithMember extends TaskComment {
+  member: Member
+}
+
+export interface ActivityLogEntry {
+  id: string
+  actor_id: string | null
+  action: string
+  target_type: string
+  target_id: string
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface ActivityLogEntryWithActor extends ActivityLogEntry {
+  actor: Member | null
+}
+
 export interface Database {
   public: {
     Tables: {

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { MemberAvatar } from '@/components/shared/MemberAvatar'
 import { filterOverdue } from '@/lib/utils/taskHelpers'
 import { formatDateKL } from '@/lib/utils/dateHelpers'
+import { DueDateBadge } from '@/components/shared/DueDateBadge'
 import { Calendar, Image as ImageIcon, AlertTriangle } from 'lucide-react'
 
 interface OverviewTabProps {
@@ -94,9 +95,7 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
               <div key={task.id} className="flex items-center gap-2 text-sm">
                 <MemberAvatar member={task.member} size="sm" />
                 <span className="truncate flex-1 text-red-900">{task.title}</span>
-                <span className="text-xs text-red-600 font-medium shrink-0">
-                  Due {formatDateKL(task.due_date! + 'T00:00:00', 'dd MMM')}
-                </span>
+                <DueDateBadge dueDate={task.due_date} status={task.status} />
               </div>
             ))}
             {overdueItems.length > 5 && (

@@ -14,6 +14,10 @@ import { MarketingTab } from './MarketingTab'
 import { IntegrationsTab } from './IntegrationsTab'
 import { ResourcesTab } from './ResourcesTab'
 import { Shield, X, Lock } from 'lucide-react'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
+import { ActivityFeed } from '@/components/shared/ActivityFeed'
+import { MemberProfileModal } from '@/components/shared/MemberProfileModal'
+import type { Member } from '@/lib/supabase/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -40,6 +44,7 @@ export function DashboardShell() {
   const { tasks, loading } = useTasks()
   const members = useMembers()
 
+  const [profileMember, setProfileMember] = useState<Member | null>(null)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState(false)
@@ -87,7 +92,10 @@ export function DashboardShell() {
             {getTodayDisplayKL()}
           </p>
         </div>
-        <button
+        <div className="flex items-center gap-2">
+          <ActivityFeed />
+          <ThemeToggle />
+          <button
           onClick={handlePresidentClick}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
             activeTab === 'president'
@@ -104,6 +112,7 @@ export function DashboardShell() {
           )}
           <span className="hidden sm:inline">President View</span>
         </button>
+        </div>
       </header>
 
       <nav className="border-b border-border px-4 sm:px-6 overflow-x-auto">
@@ -126,14 +135,21 @@ export function DashboardShell() {
 
       <main className="px-4 sm:px-6 py-6 max-w-[1400px] mx-auto">
         {activeTab === 'overview' && <OverviewTab tasks={tasks} members={members} loading={loading} />}
-        {activeTab === 'president' && presidentUnlocked && <PresidentViewTab tasks={tasks} members={members} loading={loading} />}
+        {activeTab === 'president' && presidentUnlocked && <PresidentViewTab tasks={tasks} members={members} loading={loading} onMemberClick={(member) => setProfileMember(member)} />}
         {activeTab === 'events' && <EventsTab members={members} />}
-        {activeTab === 'boards' && <BoardsTab tasks={tasks} members={members} loading={loading} />}
+        {activeTab === 'boards' && <BoardsTab tasks={tasks} members={members} loading={loading} onMemberClick={(member) => setProfileMember(member)} />}
         {activeTab === 'meetings' && <MeetingMinutesTab members={members} />}
         {activeTab === 'marketing' && <MarketingTab members={members} />}
         {activeTab === 'resources' && <ResourcesTab />}
         {activeTab === 'integrations' && <IntegrationsTab />}
       </main>
+
+      {/* Member Profile Modal */}
+      <MemberProfileModal
+        member={profileMember}
+        tasks={tasks}
+        onClose={() => setProfileMember(null)}
+      />
 
       {/* Password Modal */}
       {showPasswordModal && (

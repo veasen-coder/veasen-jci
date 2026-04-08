@@ -11,8 +11,8 @@ import {
 import type { TaskWithMember, Member, TaskStatus, TaskPriority, Event } from '@/lib/supabase/types'
 import { useTaskStore } from '@/lib/store/useTaskStore'
 import { filterByMember } from '@/lib/utils/taskHelpers'
-import { formatDueDate, isOverdue } from '@/lib/utils/dateHelpers'
 import { MemberAvatar } from '@/components/shared/MemberAvatar'
+import { DueDateBadge } from '@/components/shared/DueDateBadge'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { TaskEditModal } from './TaskEditModal'
@@ -27,6 +27,7 @@ interface BoardsTabProps {
   tasks: TaskWithMember[]
   members: Member[]
   loading: boolean
+  onMemberClick?: (member: Member) => void
 }
 
 type ColumnId = 'todo' | 'in-progress' | 'done'
@@ -37,7 +38,7 @@ const columns: { id: ColumnId; label: string }[] = [
   { id: 'done', label: 'Done' },
 ]
 
-export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
+export function BoardsTab({ tasks, members, loading, onMemberClick }: BoardsTabProps) {
   const searchParams = useSearchParams()
   const memberParam = searchParams.get('member')
   const [selectedMemberId, setSelectedMemberId] = useState<string>(
@@ -115,7 +116,7 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
-            <MemberAvatar member={member} size="sm" />
+            <MemberAvatar member={member} size="sm" onClick={onMemberClick ? () => onMemberClick(member) : undefined} />
             {member.role}
           </button>
         ))}
@@ -172,7 +173,7 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
                               >
                                 {isAllView && task.member && (
                                   <div className="flex items-center gap-1.5 mb-1.5">
-                                    <MemberAvatar member={task.member} size="sm" />
+                                    <MemberAvatar member={task.member} size="sm" onClick={onMemberClick ? () => onMemberClick(task.member) : undefined} />
                                     <span className="text-xs text-muted-foreground">{task.member.role}</span>
                                   </div>
                                 )}
@@ -182,17 +183,7 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <StatusBadge status={task.status} />
                                   <PriorityBadge priority={task.priority} />
-                                  {task.due_date && (
-                                    <span
-                                      className={`text-xs ${
-                                        isOverdue(task.due_date) && task.status !== 'done'
-                                          ? 'text-red-600'
-                                          : 'text-muted-foreground'
-                                      }`}
-                                    >
-                                      {formatDueDate(task.due_date)}
-                                    </span>
-                                  )}
+                                  <DueDateBadge dueDate={task.due_date} status={task.status} />
                                   {task.needs_qc && (
                                     <span className="flex items-center gap-0.5 bg-violet-100 text-violet-700 rounded-md text-[10px] font-bold px-1.5 py-0.5">
                                       <Shield className="h-3 w-3" />
@@ -228,6 +219,7 @@ export function BoardsTab({ tasks, members, loading }: BoardsTabProps) {
         <TaskEditModal
           task={editingTask}
           events={events}
+          members={members}
           onClose={() => setEditingTask(null)}
         />
       )}

@@ -1,21 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import type { TaskWithMember, Event, TaskStatus, TaskPriority } from '@/lib/supabase/types'
+import { useState, useEffect, useCallback } from 'react'
+import type { TaskWithMember, Event, TaskStatus, TaskPriority, TaskCommentWithMember, Member } from '@/lib/supabase/types'
 import { useTaskStore } from '@/lib/store/useTaskStore'
+import { MemberAvatar } from '@/components/shared/MemberAvatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { X, Shield } from 'lucide-react'
+import { X, Shield, MessageSquare, Send } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface TaskEditModalProps {
   task: TaskWithMember
   events: Event[]
+  members: Member[]
   onClose: () => void
 }
 
-export function TaskEditModal({ task, events, onClose }: TaskEditModalProps) {
+export function TaskEditModal({ task, events, members, onClose }: TaskEditModalProps) {
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description || '')
   const [dueDate, setDueDate] = useState(task.due_date || '')
@@ -24,7 +26,42 @@ export function TaskEditModal({ task, events, onClose }: TaskEditModalProps) {
   const [eventId, setEventId] = useState(task.event_id || '')
   const [needsQc, setNeedsQc] = useState(task.needs_qc)
   const [saving, setSaving] = useState(false)
+  const [comments, setComments] = useState<TaskCommentWithMember[]>([])
+  const [newComment, setNewComment] = useState('')
+  const [commentAs, setCommentAs] = useState(task.member_id)
+  const [sendingComment, setSendingComment] = useState(false)
   const updateTask = useTaskStore((s) => s.updateTask)
+
+  const fetchComments = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/comments`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data)) setComments(data)
+    } catch {}
+  }, [task.id])
+
+  useEffect(() => { fetchComments() }, [fetchComments])
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return
+    setSendingComment(true)
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ member_id: commentAs, content: newComment.trim() }),
+      })
+      if (!res.ok) throw new Error()
+      const comment = await res.json()
+      setComments((prev) => [...prev, comment])
+      setNewComment('')
+    } catch {
+      toast.error('Failed to add comment')
+    } finally {
+      setSendingComment(false)
+    }
+  }
 
   // Close on Escape
   useEffect(() => {
@@ -63,7 +100,7 @@ export function TaskEditModal({ task, events, onClose }: TaskEditModalProps) {
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-card border border-border rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-card border border-border rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] sm:max-h-[90vh] h-full sm:h-auto overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h3 className="text-sm font-semibold">Edit Task</h3>
           <button onClick={onClose}>
@@ -164,6 +201,62 @@ export function TaskEditModal({ task, events, onClose }: TaskEditModalProps) {
             <Shield className="h-4 w-4" />
             {needsQc ? 'QC Requested — President will review' : 'Request QC from President'}
           </button>
+        </div>
+
+        {/* Comments Section */}
+        <div className="border-t border-border p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Comments ({comments.length})
+            </h4>
+          </div>
+
+          {comments.length > 0 && (
+            <div className="space-y-2.5 max-h-48 overflow-y-auto">
+              {comments.map((c) => (
+                <div key={c.id} className="flex items-start gap-2">
+                  {c.member && <MemberAvatar member={c.member} size="sm" />}
+                  <div className="flex-1 min-w-0 bg-muted/50 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium">{c.member?.name || 'Unknown'}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(c.created_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-foreground mt-0.5">{c.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <select
+              value={commentAs}
+              onChange={(e) => setCommentAs(e.target.value)}
+              className="h-9 rounded-md border border-border bg-background px-2 text-xs w-28 shrink-0"
+            >
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+            <Input
+              placeholder="Add a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment() } }}
+              className="text-sm h-9"
+            />
+            <Button
+              size="sm"
+              onClick={handleAddComment}
+              disabled={sendingComment || !newComment.trim()}
+              className="h-9 px-3 shrink-0"
+            >
+              <Send className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 p-5 border-t border-border">

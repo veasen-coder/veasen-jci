@@ -46,6 +46,28 @@ export function isOverdue(dueDate: string | null) {
   return dueDate < today
 }
 
+export function isDueThisWeek(dueDate: string | null) {
+  if (!dueDate) return false
+  const today = getTodayKL()
+  if (dueDate < today) return false
+  const now = toZonedTime(new Date(), KL_TIMEZONE)
+  const in7Days = new Date(now)
+  in7Days.setDate(in7Days.getDate() + 7)
+  const in7DaysStr = format(in7Days, 'yyyy-MM-dd')
+  return dueDate <= in7DaysStr
+}
+
+export function isDueSoon(dueDate: string | null) {
+  if (!dueDate) return false
+  const today = getTodayKL()
+  if (dueDate < today) return false
+  const now = toZonedTime(new Date(), KL_TIMEZONE)
+  const in3Days = new Date(now)
+  in3Days.setDate(in3Days.getDate() + 3)
+  const in3DaysStr = format(in3Days, 'yyyy-MM-dd')
+  return dueDate <= in3DaysStr
+}
+
 export function formatDueDate(dueDate: string | null) {
   if (!dueDate) return 'No due date'
   return formatDateKL(dueDate + 'T00:00:00', 'dd MMM')

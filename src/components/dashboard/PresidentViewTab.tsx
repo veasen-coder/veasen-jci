@@ -10,7 +10,7 @@ import { MemberAvatar } from '@/components/shared/MemberAvatar'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { getTaskCounts, getMemberStats, getDoneThisWeek, filterByMember, filterOverdue } from '@/lib/utils/taskHelpers'
-import { formatDueDate, isOverdue } from '@/lib/utils/dateHelpers'
+import { DueDateBadge } from '@/components/shared/DueDateBadge'
 import { Loader2, AlertTriangle, CheckCircle2, Clock, Shield, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -18,9 +18,10 @@ interface PresidentViewTabProps {
   tasks: TaskWithMember[]
   members: Member[]
   loading: boolean
+  onMemberClick?: (member: Member) => void
 }
 
-export function PresidentViewTab({ tasks, members, loading }: PresidentViewTabProps) {
+export function PresidentViewTab({ tasks, members, loading, onMemberClick }: PresidentViewTabProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -108,9 +109,9 @@ export function PresidentViewTab({ tasks, members, loading }: PresidentViewTabPr
             const isInactive = stats.active === 0 && stats.total === 0
 
             return (
-              <div key={member.id} className={`flex items-center gap-4 ${isInactive ? 'opacity-40' : ''}`}>
-                <div className="flex items-center gap-3 w-48 shrink-0">
-                  <MemberAvatar member={member} size="sm" />
+              <div key={member.id} className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${isInactive ? 'opacity-40' : ''}`}>
+                <div className="flex items-center gap-3 w-full sm:w-48 shrink-0">
+                  <MemberAvatar member={member} size="sm" onClick={onMemberClick ? () => onMemberClick(member) : undefined} />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{member.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{member.role}</p>
@@ -161,7 +162,7 @@ export function PresidentViewTab({ tasks, members, loading }: PresidentViewTabPr
                 className="w-full rounded-xl border border-border bg-card p-4 text-left transition-all duration-150 hover:border-border/80 hover:bg-accent/50"
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <MemberAvatar member={member} />
+                  <MemberAvatar member={member} onClick={onMemberClick ? () => onMemberClick(member) : undefined} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{member.name}</p>
                     <p className="text-xs text-muted-foreground">{member.role}</p>
@@ -184,11 +185,7 @@ export function PresidentViewTab({ tasks, members, loading }: PresidentViewTabPr
                           QC
                         </span>
                       )}
-                      {task.due_date && (
-                        <span className={`text-xs shrink-0 ${isOverdue(task.due_date) ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
-                          {formatDueDate(task.due_date)}
-                        </span>
-                      )}
+                      <DueDateBadge dueDate={task.due_date} status={task.status} />
                     </div>
                   ))}
                   {memberTasks.length > 5 && (
@@ -234,7 +231,7 @@ function QCRequestCard({ task }: { task: TaskWithMember }) {
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-violet-50/50 border border-violet-100">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-violet-50/50 border border-violet-100 dark:bg-violet-950/30 dark:border-violet-900">
       <MemberAvatar member={task.member} size="sm" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{task.title}</p>
@@ -246,11 +243,7 @@ function QCRequestCard({ task }: { task: TaskWithMember }) {
         )}
       </div>
       <StatusBadge status={task.status} />
-      {task.due_date && (
-        <span className={`text-xs shrink-0 ${isOverdue(task.due_date) && task.status !== 'done' ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
-          {formatDueDate(task.due_date)}
-        </span>
-      )}
+      <DueDateBadge dueDate={task.due_date} status={task.status} />
       <div className="flex items-center gap-1.5 shrink-0">
         <Button
           size="sm"
