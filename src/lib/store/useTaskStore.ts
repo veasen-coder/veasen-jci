@@ -6,11 +6,14 @@ interface TaskStore {
   members: Member[]
   loading: boolean
   error: string | null
+  activeProfileId: string | null
 
   setTasks: (tasks: TaskWithMember[]) => void
   setMembers: (members: Member[]) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
+  setActiveProfileId: (id: string | null) => void
+  clearActiveProfile: () => void
 
   fetchTasks: () => Promise<void>
   fetchMembers: () => Promise<void>
@@ -38,11 +41,24 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   members: [],
   loading: false,
   error: null,
+  activeProfileId: typeof window !== 'undefined' ? localStorage.getItem('jci-profile') : null,
 
   setTasks: (tasks) => set({ tasks }),
   setMembers: (members) => set({ members }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
+  setActiveProfileId: (id) => {
+    if (id) {
+      localStorage.setItem('jci-profile', id)
+    } else {
+      localStorage.removeItem('jci-profile')
+    }
+    set({ activeProfileId: id })
+  },
+  clearActiveProfile: () => {
+    localStorage.removeItem('jci-profile')
+    set({ activeProfileId: null })
+  },
 
   fetchTasks: async () => {
     set({ loading: true, error: null })

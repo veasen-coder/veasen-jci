@@ -27,6 +27,7 @@ interface BoardsTabProps {
   tasks: TaskWithMember[]
   members: Member[]
   loading: boolean
+  activeProfileId?: string | null
   onMemberClick?: (member: Member) => void
 }
 
@@ -38,11 +39,11 @@ const columns: { id: ColumnId; label: string }[] = [
   { id: 'done', label: 'Done' },
 ]
 
-export function BoardsTab({ tasks, members, loading, onMemberClick }: BoardsTabProps) {
+export function BoardsTab({ tasks, members, loading, activeProfileId, onMemberClick }: BoardsTabProps) {
   const searchParams = useSearchParams()
   const memberParam = searchParams.get('member')
   const [selectedMemberId, setSelectedMemberId] = useState<string>(
-    memberParam || 'all'
+    memberParam || activeProfileId || 'all'
   )
   const [editingTask, setEditingTask] = useState<TaskWithMember | null>(null)
   const [events, setEvents] = useState<Event[]>([])
