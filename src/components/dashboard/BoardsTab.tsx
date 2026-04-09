@@ -28,6 +28,7 @@ interface BoardsTabProps {
   members: Member[]
   loading: boolean
   activeProfileId?: string | null
+  isPresident?: boolean
   onMemberClick?: (member: Member) => void
 }
 
@@ -39,7 +40,7 @@ const columns: { id: ColumnId; label: string }[] = [
   { id: 'done', label: 'Done' },
 ]
 
-export function BoardsTab({ tasks, members, loading, activeProfileId, onMemberClick }: BoardsTabProps) {
+export function BoardsTab({ tasks, members, loading, activeProfileId, isPresident, onMemberClick }: BoardsTabProps) {
   const searchParams = useSearchParams()
   const memberParam = searchParams.get('member')
   const [selectedMemberId, setSelectedMemberId] = useState<string>(
@@ -95,33 +96,35 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, onMemberCl
 
   return (
     <div className="space-y-6">
-      {/* Member Selector — shows roles instead of names */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        <button
-          onClick={() => setSelectedMemberId('all')}
-          className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap shrink-0 ${
-            isAllView
-              ? 'bg-foreground text-background'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
-        >
-          All Members
-        </button>
-        {members.map((member) => (
+      {/* Member Selector — only visible to President */}
+      {isPresident && (
+        <div className="flex gap-2 overflow-x-auto pb-2">
           <button
-            key={member.id}
-            onClick={() => setSelectedMemberId(member.id)}
+            onClick={() => setSelectedMemberId('all')}
             className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap shrink-0 ${
-              selectedMemberId === member.id
+              isAllView
                 ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
-            <MemberAvatar member={member} size="sm" onClick={onMemberClick ? () => onMemberClick(member) : undefined} />
-            {member.role}
+            All Members
           </button>
-        ))}
-      </div>
+          {members.map((member) => (
+            <button
+              key={member.id}
+              onClick={() => setSelectedMemberId(member.id)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap shrink-0 ${
+                selectedMemberId === member.id
+                  ? 'bg-foreground text-background'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              <MemberAvatar member={member} size="sm" onClick={onMemberClick ? () => onMemberClick(member) : undefined} />
+              {member.role}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         {selectedMember ? (

@@ -58,10 +58,21 @@ export function DashboardShell() {
   const [presidentUnlocked, setPresidentUnlocked] = useState(false)
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
 
+  // Role-based permissions
+  const role = activeProfile?.role?.toLowerCase() || ''
+  const isPresident = role === 'president'
+  const isSecretary = role === 'secretary'
+  const isMarketing = role.includes('marketing')
+
   // Filter tasks for the active profile (used for non-president tabs)
   const myTasks = activeProfileId
     ? tasks.filter((t) => t.member_id === activeProfileId)
     : tasks
+
+  // Determine visible tabs based on role
+  const visibleTabs = isPresident
+    ? tabs
+    : tabs.filter((t) => t.id !== 'integrations')
 
   const setTab = (tab: TabId) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -212,7 +223,7 @@ export function DashboardShell() {
 
       <nav className="border-b border-border px-4 sm:px-6 overflow-x-auto">
         <div className="flex gap-1 min-w-max">
-          {tabs.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setTab(tab.id)}
@@ -229,14 +240,14 @@ export function DashboardShell() {
       </nav>
 
       <main className="px-4 sm:px-6 py-6 max-w-[1400px] mx-auto">
-        {activeTab === 'overview' && <OverviewTab tasks={myTasks} members={members} loading={loading} />}
+        {activeTab === 'overview' && <OverviewTab tasks={tasks} members={members} loading={loading} />}
         {activeTab === 'president' && presidentUnlocked && <PresidentViewTab tasks={tasks} members={members} loading={loading} onMemberClick={(member) => setProfileMemberId(member.id)} />}
         {activeTab === 'events' && <EventsTab members={members} />}
-        {activeTab === 'boards' && <BoardsTab tasks={myTasks} members={members} loading={loading} activeProfileId={activeProfileId} onMemberClick={(member) => setProfileMemberId(member.id)} />}
-        {activeTab === 'meetings' && <MeetingMinutesTab members={members} />}
-        {activeTab === 'marketing' && <MarketingTab members={members} />}
+        {activeTab === 'boards' && <BoardsTab tasks={isPresident ? tasks : myTasks} members={members} loading={loading} activeProfileId={activeProfileId} isPresident={isPresident} onMemberClick={(member) => setProfileMemberId(member.id)} />}
+        {activeTab === 'meetings' && <MeetingMinutesTab members={members} canEdit={isPresident || isSecretary} />}
+        {activeTab === 'marketing' && <MarketingTab members={members} canEdit={isPresident || isMarketing} />}
         {activeTab === 'resources' && <ResourcesTab />}
-        {activeTab === 'integrations' && <IntegrationsTab />}
+        {activeTab === 'integrations' && isPresident && <IntegrationsTab />}
       </main>
 
       {/* Member Profile Modal */}

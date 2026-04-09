@@ -26,9 +26,10 @@ import { toast } from 'sonner'
 
 interface MeetingMinutesTabProps {
   members: Member[]
+  canEdit?: boolean
 }
 
-export function MeetingMinutesTab({ members }: MeetingMinutesTabProps) {
+export function MeetingMinutesTab({ members, canEdit = true }: MeetingMinutesTabProps) {
   const [meetings, setMeetings] = useState<MeetingMinutes[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -78,10 +79,12 @@ export function MeetingMinutesTab({ members }: MeetingMinutesTabProps) {
             {meetings.length} meeting{meetings.length !== 1 ? 's' : ''} recorded
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-2" disabled={showForm}>
-          <Plus className="h-4 w-4" />
-          New Meeting
-        </Button>
+        {canEdit && (
+          <Button onClick={() => setShowForm(true)} className="gap-2" disabled={showForm}>
+            <Plus className="h-4 w-4" />
+            New Meeting
+          </Button>
+        )}
       </div>
 
       {showForm && (
@@ -176,6 +179,7 @@ export function MeetingMinutesTab({ members }: MeetingMinutesTabProps) {
                     meeting={meeting}
                     members={members}
                     getMemberById={getMemberById}
+                    canEdit={canEdit}
                     onUpdate={(updated) => {
                       setMeetings((prev) =>
                         prev.map((m) => (m.id === updated.id ? updated : m))
@@ -364,12 +368,14 @@ function MeetingDetail({
   meeting,
   members,
   getMemberById,
+  canEdit = true,
   onUpdate,
   onDelete,
 }: {
   meeting: MeetingMinutes
   members: Member[]
   getMemberById: (id: string) => Member | undefined
+  canEdit?: boolean
   onUpdate: (meeting: MeetingMinutes) => void
   onDelete: () => void
 }) {
@@ -487,17 +493,19 @@ function MeetingDetail({
           <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <FileText className="h-3.5 w-3.5" /> Agenda
           </h4>
-          <button
-            onClick={() => {
-              if (editingAgenda) {
-                saveField('agenda', agenda.trim() || null)
-              }
-              setEditingAgenda(!editingAgenda)
-            }}
-            className="text-xs text-blue-600 hover:underline"
-          >
-            {editingAgenda ? 'Save' : 'Edit'}
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                if (editingAgenda) {
+                  saveField('agenda', agenda.trim() || null)
+                }
+                setEditingAgenda(!editingAgenda)
+              }}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              {editingAgenda ? 'Save' : 'Edit'}
+            </button>
+          )}
         </div>
         {editingAgenda ? (
           <Textarea
@@ -520,17 +528,19 @@ function MeetingDetail({
           <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <FileText className="h-3.5 w-3.5" /> Notes
           </h4>
-          <button
-            onClick={() => {
-              if (editingNotes) {
-                saveField('notes', notes.trim() || null)
-              }
-              setEditingNotes(!editingNotes)
-            }}
-            className="text-xs text-blue-600 hover:underline"
-          >
-            {editingNotes ? 'Save' : 'Edit'}
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                if (editingNotes) {
+                  saveField('notes', notes.trim() || null)
+                }
+                setEditingNotes(!editingNotes)
+              }}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              {editingNotes ? 'Save' : 'Edit'}
+            </button>
+          )}
         </div>
         {editingNotes ? (
           <Textarea
@@ -576,52 +586,56 @@ function MeetingDetail({
                     {assignee.name}
                   </div>
                 )}
-                <button
-                  onClick={() => removeActionItem(item.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600" />
-                </button>
+                {canEdit && (
+                  <button
+                    onClick={() => removeActionItem(item.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600" />
+                  </button>
+                )}
               </div>
             )
           })}
 
           {/* Add action item */}
-          <div className="flex items-center gap-2 pt-1">
-            <Plus className="h-4 w-4 text-muted-foreground shrink-0" />
-            <Input
-              placeholder="Add action item..."
-              value={newActionText}
-              onChange={(e) => setNewActionText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addActionItem()
-                }
-              }}
-              className="h-8 text-sm"
-            />
-            <select
-              value={newActionAssignee}
-              onChange={(e) => setNewActionAssignee(e.target.value)}
-              className="h-8 rounded-md border border-border bg-background px-2 text-xs"
-            >
-              <option value="">Assign to...</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={addActionItem}
-              disabled={!newActionText.trim()}
-              className="h-8 px-2"
-            >
-              Add
-            </Button>
-          </div>
+          {canEdit && (
+            <div className="flex items-center gap-2 pt-1">
+              <Plus className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Input
+                placeholder="Add action item..."
+                value={newActionText}
+                onChange={(e) => setNewActionText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addActionItem()
+                  }
+                }}
+                className="h-8 text-sm"
+              />
+              <select
+                value={newActionAssignee}
+                onChange={(e) => setNewActionAssignee(e.target.value)}
+                className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+              >
+                <option value="">Assign to...</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={addActionItem}
+                disabled={!newActionText.trim()}
+                className="h-8 px-2"
+              >
+                Add
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -631,17 +645,19 @@ function MeetingDetail({
           <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <FileText className="h-3.5 w-3.5" /> Google Docs
           </h4>
-          <button
-            onClick={() => {
-              if (editingDocsUrl) {
-                saveField('google_docs_url', docsUrl.trim() || null)
-              }
-              setEditingDocsUrl(!editingDocsUrl)
-            }}
-            className="text-xs text-blue-600 hover:underline"
-          >
-            {editingDocsUrl ? 'Save' : 'Edit'}
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                if (editingDocsUrl) {
+                  saveField('google_docs_url', docsUrl.trim() || null)
+                }
+                setEditingDocsUrl(!editingDocsUrl)
+              }}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              {editingDocsUrl ? 'Save' : 'Edit'}
+            </button>
+          )}
         </div>
         {editingDocsUrl ? (
           <Input
@@ -697,40 +713,46 @@ function MeetingDetail({
                   {(att.size / 1024).toFixed(1)} KB &middot; {att.type}
                 </p>
               </div>
-              <button
-                onClick={() => removeAttachment(i)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600" />
-              </button>
+              {canEdit && (
+                <button
+                  onClick={() => removeAttachment(i)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600" />
+                </button>
+              )}
             </div>
           ))}
 
-          <label className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors py-2">
-            <Upload className="h-4 w-4" />
-            {uploading ? 'Uploading...' : 'Upload attachment'}
-            <input
-              type="file"
-              className="hidden"
-              onChange={handleFileUpload}
-              disabled={uploading}
-            />
-          </label>
+          {canEdit && (
+            <label className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors py-2">
+              <Upload className="h-4 w-4" />
+              {uploading ? 'Uploading...' : 'Upload attachment'}
+              <input
+                type="file"
+                className="hidden"
+                onChange={handleFileUpload}
+                disabled={uploading}
+              />
+            </label>
+          )}
         </div>
       </div>
 
       {/* Delete */}
-      <div className="pt-3 border-t border-border">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onDelete}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-2"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          Delete meeting
-        </Button>
-      </div>
+      {canEdit && (
+        <div className="pt-3 border-t border-border">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-2"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete meeting
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

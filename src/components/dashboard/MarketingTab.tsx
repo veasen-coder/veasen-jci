@@ -39,9 +39,10 @@ const allPlatforms: MarketingPlatform[] = ['instagram', 'facebook', 'tiktok', 't
 
 interface MarketingTabProps {
   members: Member[]
+  canEdit?: boolean
 }
 
-export function MarketingTab({ members }: MarketingTabProps) {
+export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
   const [posts, setPosts] = useState<MarketingPost[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
@@ -154,10 +155,10 @@ export function MarketingTab({ members }: MarketingTabProps) {
         count={festivalPosts.length}
         collapsed={collapsedSections['festival']}
         onToggle={() => toggleSection('festival')}
-        onAdd={() => setShowForm(showForm === 'festival' ? null : 'festival')}
+        onAdd={canEdit ? () => setShowForm(showForm === 'festival' ? null : 'festival') : undefined}
         accentColor="amber"
       >
-        {showForm === 'festival' && (
+        {canEdit && showForm === 'festival' && (
           <CreateForm
             category="festival"
             members={members}
@@ -174,6 +175,7 @@ export function MarketingTab({ members }: MarketingTabProps) {
           onToggleDone={togglePosterDone}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
+          canEdit={canEdit}
         />
       </CollapsibleSection>
 
@@ -184,10 +186,10 @@ export function MarketingTab({ members }: MarketingTabProps) {
         count={posterPosts.length}
         collapsed={collapsedSections['event_poster']}
         onToggle={() => toggleSection('event_poster')}
-        onAdd={() => setShowForm(showForm === 'event_poster' ? null : 'event_poster')}
+        onAdd={canEdit ? () => setShowForm(showForm === 'event_poster' ? null : 'event_poster') : undefined}
         accentColor="violet"
       >
-        {showForm === 'event_poster' && (
+        {canEdit && showForm === 'event_poster' && (
           <CreateForm
             category="event_poster"
             members={members}
@@ -205,6 +207,7 @@ export function MarketingTab({ members }: MarketingTabProps) {
           onToggleDone={togglePosterDone}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
+          canEdit={canEdit}
         />
       </CollapsibleSection>
 
@@ -215,10 +218,10 @@ export function MarketingTab({ members }: MarketingTabProps) {
         count={promoPosts.length}
         collapsed={collapsedSections['club_promotion']}
         onToggle={() => toggleSection('club_promotion')}
-        onAdd={() => setShowForm(showForm === 'club_promotion' ? null : 'club_promotion')}
+        onAdd={canEdit ? () => setShowForm(showForm === 'club_promotion' ? null : 'club_promotion') : undefined}
         accentColor="teal"
       >
-        {showForm === 'club_promotion' && (
+        {canEdit && showForm === 'club_promotion' && (
           <CreateForm
             category="club_promotion"
             members={members}
@@ -234,6 +237,7 @@ export function MarketingTab({ members }: MarketingTabProps) {
           members={members}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
+          canEdit={canEdit}
         />
       </CollapsibleSection>
     </div>
@@ -295,11 +299,12 @@ function CollapsibleSection({
 
 /* ============= FESTIVAL LIST ============= */
 function FestivalList({
-  posts, expandedId, setExpandedId, members, onToggleDone, onUpdate, onDelete,
+  posts, expandedId, setExpandedId, members, onToggleDone, onUpdate, onDelete, canEdit = true,
 }: {
   posts: MarketingPost[]; expandedId: string | null; setExpandedId: (id: string | null) => void
   members: Member[]; onToggleDone: (post: MarketingPost) => void
   onUpdate: (id: string, updates: Partial<MarketingPost>) => void; onDelete: (id: string) => void
+  canEdit?: boolean
 }) {
   const sorted = [...posts].sort((a, b) => {
     if (!a.due_date) return 1; if (!b.due_date) return -1
@@ -318,13 +323,21 @@ function FestivalList({
         return (
           <div key={post.id} className={isPast && !post.poster_done ? 'opacity-60' : ''}>
             <div className="flex items-center gap-3 px-4 py-3">
-              <button onClick={() => onToggleDone(post)}
-                className={`shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
-                  post.poster_done ? 'bg-green-500 border-green-500 text-white' : 'border-border hover:border-foreground/40'
-                }`}
-              >
-                {post.poster_done && <Check className="h-4 w-4" />}
-              </button>
+              {canEdit ? (
+                <button onClick={() => onToggleDone(post)}
+                  className={`shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                    post.poster_done ? 'bg-green-500 border-green-500 text-white' : 'border-border hover:border-foreground/40'
+                  }`}
+                >
+                  {post.poster_done && <Check className="h-4 w-4" />}
+                </button>
+              ) : post.poster_done ? (
+                <div className="shrink-0 w-6 h-6 rounded-md bg-green-500 flex items-center justify-center">
+                  <Check className="h-4 w-4 text-white" />
+                </div>
+              ) : (
+                <div className="shrink-0 w-6 h-6 rounded-md border-2 border-border" />
+              )}
               <div className="w-16 shrink-0 text-center">
                 {post.due_date ? (
                   <>
@@ -343,11 +356,13 @@ function FestivalList({
                   <ExternalLink className="h-3 w-3" />Canva
                 </a>
               )}
-              <button onClick={() => setExpandedId(isExpanded ? null : post.id)} className="shrink-0">
-                {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-              </button>
+              {canEdit && (
+                <button onClick={() => setExpandedId(isExpanded ? null : post.id)} className="shrink-0">
+                  {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                </button>
+              )}
             </div>
-            {isExpanded && <EditSection post={post} members={members} onUpdate={onUpdate} onDelete={onDelete} />}
+            {canEdit && isExpanded && <EditSection post={post} members={members} onUpdate={onUpdate} onDelete={onDelete} />}
           </div>
         )
       })}
@@ -357,11 +372,12 @@ function FestivalList({
 
 /* ============= EVENT POSTER LIST ============= */
 function EventPosterList({
-  posts, events, expandedId, setExpandedId, members, onToggleDone, onUpdate, onDelete,
+  posts, events, expandedId, setExpandedId, members, onToggleDone, onUpdate, onDelete, canEdit = true,
 }: {
   posts: MarketingPost[]; events: Event[]; expandedId: string | null; setExpandedId: (id: string | null) => void
   members: Member[]; onToggleDone: (post: MarketingPost) => void
   onUpdate: (id: string, updates: Partial<MarketingPost>) => void; onDelete: (id: string) => void
+  canEdit?: boolean
 }) {
   const getEvent = (id: string | null) => events.find((e) => e.id === id)
 
@@ -376,13 +392,21 @@ function EventPosterList({
         return (
           <div key={post.id}>
             <div className="flex items-center gap-3 px-4 py-3">
-              <button onClick={() => onToggleDone(post)}
-                className={`shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
-                  post.poster_done ? 'bg-green-500 border-green-500 text-white' : 'border-border hover:border-foreground/40'
-                }`}
-              >
-                {post.poster_done && <Check className="h-4 w-4" />}
-              </button>
+              {canEdit ? (
+                <button onClick={() => onToggleDone(post)}
+                  className={`shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                    post.poster_done ? 'bg-green-500 border-green-500 text-white' : 'border-border hover:border-foreground/40'
+                  }`}
+                >
+                  {post.poster_done && <Check className="h-4 w-4" />}
+                </button>
+              ) : post.poster_done ? (
+                <div className="shrink-0 w-6 h-6 rounded-md bg-green-500 flex items-center justify-center">
+                  <Check className="h-4 w-4 text-white" />
+                </div>
+              ) : (
+                <div className="shrink-0 w-6 h-6 rounded-md border-2 border-border" />
+              )}
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-medium ${post.poster_done ? 'line-through text-muted-foreground' : ''}`}>{post.title}</p>
                 {linkedEvent && <p className="text-xs text-violet-600">Event: {linkedEvent.title}</p>}
@@ -394,11 +418,13 @@ function EventPosterList({
                   <ExternalLink className="h-3 w-3" />Canva
                 </a>
               )}
-              <button onClick={() => setExpandedId(isExpanded ? null : post.id)} className="shrink-0">
-                {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-              </button>
+              {canEdit && (
+                <button onClick={() => setExpandedId(isExpanded ? null : post.id)} className="shrink-0">
+                  {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                </button>
+              )}
             </div>
-            {isExpanded && <EditSection post={post} members={members} events={events} onUpdate={onUpdate} onDelete={onDelete} />}
+            {canEdit && isExpanded && <EditSection post={post} members={members} events={events} onUpdate={onUpdate} onDelete={onDelete} />}
           </div>
         )
       })}
@@ -408,10 +434,11 @@ function EventPosterList({
 
 /* ============= CLUB PROMOTION LIST ============= */
 function ClubPromotionList({
-  posts, expandedId, setExpandedId, members, onUpdate, onDelete,
+  posts, expandedId, setExpandedId, members, onUpdate, onDelete, canEdit = true,
 }: {
   posts: MarketingPost[]; expandedId: string | null; setExpandedId: (id: string | null) => void
   members: Member[]; onUpdate: (id: string, updates: Partial<MarketingPost>) => void; onDelete: (id: string) => void
+  canEdit?: boolean
 }) {
   const statusColors: Record<MarketingStatus, string> = { draft: 'bg-amber-100 text-amber-700', scheduled: 'bg-blue-100 text-blue-700', posted: 'bg-green-100 text-green-700' }
   const statusLabels: Record<MarketingStatus, string> = { draft: 'Planning', scheduled: 'Scheduled', posted: 'Posted' }
@@ -427,10 +454,14 @@ function ClubPromotionList({
 
         return (
           <div key={post.id}>
-            <button onClick={() => setExpandedId(isExpanded ? null : post.id)}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/30 transition-colors"
+            <div
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/30 transition-colors cursor-default"
             >
-              {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+              {canEdit && (
+                <button onClick={() => setExpandedId(isExpanded ? null : post.id)} className="shrink-0">
+                  {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                </button>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{post.title}</p>
                 <div className="flex items-center gap-2 mt-1">
@@ -450,8 +481,8 @@ function ClubPromotionList({
                 </a>
               )}
               {assignee && <MemberAvatar member={assignee} size="sm" />}
-            </button>
-            {isExpanded && <EditSection post={post} members={members} onUpdate={onUpdate} onDelete={onDelete} />}
+            </div>
+            {canEdit && isExpanded && <EditSection post={post} members={members} onUpdate={onUpdate} onDelete={onDelete} />}
           </div>
         )
       })}
