@@ -1,7 +1,6 @@
 'use client'
 
 import type { Member } from '@/lib/supabase/types'
-import { Users } from 'lucide-react'
 
 interface ProfileSelectorProps {
   members: Member[]
@@ -18,12 +17,11 @@ export function ProfileSelector({ members, onSelect, loading }: ProfileSelectorP
         <div className="w-full max-w-lg">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-4">
-              <Users className="h-7 w-7 text-violet-600 dark:text-violet-400" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              JCI Youth IICS
-            </h1>
+            <img
+              src="https://res.cloudinary.com/dp0wzw4wa/image/upload/v1776336475/JCI_YOUTH_IICS_1_fu6v42.png"
+              alt="JCI Youth IICS"
+              className="h-16 w-auto object-contain mx-auto mb-4"
+            />
             <p className="text-sm text-muted-foreground mt-1.5">
               Select your profile to continue
             </p>

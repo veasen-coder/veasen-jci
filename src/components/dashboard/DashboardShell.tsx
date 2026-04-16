@@ -124,13 +124,17 @@ export function DashboardShell() {
     <div className="min-h-screen bg-background">
       <div className="h-1 bg-gradient-to-r from-violet-600 to-blue-600" />
       <header className="border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">
-            JCI Youth IICS <span className="text-violet-600">&middot;</span> Command Dashboard
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {getTodayDisplayKL()}
-          </p>
+        <div className="flex items-center gap-3">
+          <img
+            src="https://res.cloudinary.com/dp0wzw4wa/image/upload/v1776336475/JCI_YOUTH_IICS_1_fu6v42.png"
+            alt="JCI Youth IICS"
+            className="h-10 w-auto object-contain"
+          />
+          <div className="hidden sm:block">
+            <p className="text-sm text-muted-foreground">
+              {getTodayDisplayKL()}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <ActivityFeed />
