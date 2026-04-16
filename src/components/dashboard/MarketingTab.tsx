@@ -23,6 +23,7 @@ import {
   GanttChart,
   CheckCircle2,
   AlertTriangle,
+  Upload,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -46,7 +47,7 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
   const [posts, setPosts] = useState<MarketingPost[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState<MarketingCategory | null>(null)
+  const [showForm, setShowForm] = useState<MarketingCategory | 'festival_bulk' | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
 
@@ -158,14 +159,43 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
         onAdd={canEdit ? () => setShowForm(showForm === 'festival' ? null : 'festival') : undefined}
         accentColor="amber"
       >
-        {canEdit && showForm === 'festival' && (
-          <CreateForm
-            category="festival"
-            members={members}
-            events={events}
-            onSave={(post) => { setPosts((prev) => [post, ...prev]); setShowForm(null); setExpandedId(post.id) }}
-            onCancel={() => setShowForm(null)}
-          />
+        {canEdit && (showForm === 'festival' || showForm === 'festival_bulk') && (
+          <div className="mb-3">
+            {/* Toggle between single and bulk */}
+            <div className="flex gap-1 mb-3">
+              <button
+                onClick={() => setShowForm('festival')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  showForm === 'festival' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Single
+              </button>
+              <button
+                onClick={() => setShowForm('festival_bulk')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  showForm === 'festival_bulk' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Bulk Upload
+              </button>
+            </div>
+            {showForm === 'festival' && (
+              <CreateForm
+                category="festival"
+                members={members}
+                events={events}
+                onSave={(post) => { setPosts((prev) => [post, ...prev]); setShowForm(null); setExpandedId(post.id) }}
+                onCancel={() => setShowForm(null)}
+              />
+            )}
+            {showForm === 'festival_bulk' && (
+              <BulkFestivalForm
+                onSave={(newPosts) => { setPosts((prev) => [...newPosts, ...prev]); setShowForm(null) }}
+                onCancel={() => setShowForm(null)}
+              />
+            )}
+          </div>
         )}
         <FestivalList
           posts={festivalPosts}
@@ -486,6 +516,246 @@ function ClubPromotionList({
           </div>
         )
       })}
+    </div>
+  )
+}
+
+/* ============= BULK FESTIVAL FORM ============= */
+const MALAYSIAN_FESTIVALS_2026 = [
+  { name: 'New Year', date: '2026-01-01' },
+  { name: 'Thaipusam', date: '2026-01-25' },
+  { name: 'Chinese New Year', date: '2026-02-17' },
+  { name: 'Nuzul Al-Quran', date: '2026-03-20' },
+  { name: 'Labour Day', date: '2026-05-01' },
+  { name: 'Wesak Day', date: '2026-05-12' },
+  { name: 'Hari Raya Aidilfitri', date: '2026-03-30' },
+  { name: 'Agong Birthday', date: '2026-06-01' },
+  { name: 'Hari Raya Haji', date: '2026-06-07' },
+  { name: 'Awal Muharram', date: '2026-06-27' },
+  { name: 'Malaysia Day', date: '2026-09-16' },
+  { name: 'Maulidur Rasul', date: '2026-09-05' },
+  { name: 'Deepavali', date: '2026-10-20' },
+  { name: 'Christmas', date: '2026-12-25' },
+  { name: 'Merdeka Day', date: '2026-08-31' },
+  { name: "Mother's Day", date: '2026-05-10' },
+  { name: "Father's Day", date: '2026-06-21' },
+  { name: "Valentine's Day", date: '2026-02-14' },
+  { name: 'World Mental Health Day', date: '2026-10-10' },
+  { name: 'International Youth Day', date: '2026-08-12' },
+]
+
+function BulkFestivalForm({
+  onSave,
+  onCancel,
+}: {
+  onSave: (posts: MarketingPost[]) => void
+  onCancel: () => void
+}) {
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [customRows, setCustomRows] = useState<{ name: string; date: string }[]>([])
+  const [submitting, setSubmitting] = useState(false)
+
+  const toggleFestival = (index: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(index)) next.delete(index)
+      else next.add(index)
+      return next
+    })
+  }
+
+  const selectAll = () => {
+    if (selected.size === MALAYSIAN_FESTIVALS_2026.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(MALAYSIAN_FESTIVALS_2026.map((_, i) => i)))
+    }
+  }
+
+  const addCustomRow = () => {
+    setCustomRows((prev) => [...prev, { name: '', date: '' }])
+  }
+
+  const updateCustomRow = (index: number, field: 'name' | 'date', value: string) => {
+    setCustomRows((prev) => prev.map((r, i) => i === index ? { ...r, [field]: value } : r))
+  }
+
+  const removeCustomRow = (index: number) => {
+    setCustomRows((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleBulkCreate = async () => {
+    const items: { name: string; date: string }[] = []
+
+    // Add selected preset festivals
+    selected.forEach((index) => {
+      items.push(MALAYSIAN_FESTIVALS_2026[index])
+    })
+
+    // Add custom rows with valid data
+    customRows.forEach((row) => {
+      if (row.name.trim() && row.date) {
+        items.push({ name: row.name.trim(), date: row.date })
+      }
+    })
+
+    if (items.length === 0) {
+      toast.error('Select at least one festival or add a custom one')
+      return
+    }
+
+    setSubmitting(true)
+    const created: MarketingPost[] = []
+
+    try {
+      for (const item of items) {
+        const res = await fetch('/api/marketing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: item.name,
+            category: 'festival',
+            platform: 'instagram',
+            status: 'draft',
+            due_date: item.date,
+            start_date: null,
+            description: null,
+            assigned_to: null,
+            content_url: null,
+            event_id: null,
+            poster_done: false,
+          }),
+        })
+        if (res.ok) {
+          const post = await res.json()
+          created.push(post)
+        }
+      }
+      toast.success(`Added ${created.length} festival${created.length !== 1 ? 's' : ''}`)
+      onSave(created)
+    } catch {
+      toast.error('Some festivals failed to create')
+      if (created.length > 0) onSave(created)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const allSelected = selected.size === MALAYSIAN_FESTIVALS_2026.length
+
+  // Sort festivals by date
+  const sortedFestivals = MALAYSIAN_FESTIVALS_2026
+    .map((f, i) => ({ ...f, originalIndex: i }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+
+  return (
+    <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20 p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Upload className="h-4 w-4 text-amber-600" />
+          <h3 className="text-sm font-semibold">Bulk Add Festivals</h3>
+        </div>
+        <button type="button" onClick={onCancel}><X className="h-4 w-4 text-muted-foreground" /></button>
+      </div>
+
+      {/* Select All */}
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">Malaysian Festivals & Key Dates 2026</p>
+        <button
+          onClick={selectAll}
+          className="text-xs text-amber-600 hover:underline font-medium"
+        >
+          {allSelected ? 'Deselect All' : 'Select All'}
+        </button>
+      </div>
+
+      {/* Festival Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-[300px] overflow-y-auto">
+        {sortedFestivals.map((festival) => {
+          const isSelected = selected.has(festival.originalIndex)
+          const dateObj = new Date(festival.date + 'T00:00:00')
+          const monthDay = dateObj.toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })
+
+          return (
+            <button
+              key={festival.originalIndex}
+              type="button"
+              onClick={() => toggleFestival(festival.originalIndex)}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-all ${
+                isSelected
+                  ? 'bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700'
+                  : 'bg-card border border-border hover:border-amber-200 dark:hover:border-amber-800'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                  isSelected ? 'bg-amber-500 border-amber-500 text-white' : 'border-border'
+                }`}
+              >
+                {isSelected && <Check className="h-3 w-3" />}
+              </div>
+              <span className="flex-1 font-medium truncate">{festival.name}</span>
+              <span className="text-xs text-muted-foreground shrink-0">{monthDay}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Custom Entries */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-muted-foreground">Custom Festivals</p>
+          <button
+            type="button"
+            onClick={addCustomRow}
+            className="text-xs text-amber-600 hover:underline font-medium flex items-center gap-1"
+          >
+            <Plus className="h-3 w-3" /> Add Custom
+          </button>
+        </div>
+        {customRows.length > 0 && (
+          <div className="space-y-2">
+            {customRows.map((row, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Input
+                  placeholder="Festival name"
+                  value={row.name}
+                  onChange={(e) => updateCustomRow(i, 'name', e.target.value)}
+                  className="flex-1 h-8 text-sm"
+                />
+                <Input
+                  type="date"
+                  value={row.date}
+                  onChange={(e) => updateCustomRow(i, 'date', e.target.value)}
+                  className="w-40 h-8 text-sm"
+                />
+                <button type="button" onClick={() => removeCustomRow(i)}>
+                  <X className="h-3.5 w-3.5 text-muted-foreground hover:text-red-500" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between pt-2 border-t border-border">
+        <p className="text-xs text-muted-foreground">
+          {selected.size + customRows.filter((r) => r.name.trim() && r.date).length} festival(s) selected
+        </p>
+        <div className="flex gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleBulkCreate}
+            disabled={submitting || (selected.size === 0 && customRows.filter((r) => r.name.trim() && r.date).length === 0)}
+            className="gap-2 bg-amber-600 hover:bg-amber-700 text-white"
+          >
+            {submitting ? 'Creating...' : `Add ${selected.size + customRows.filter((r) => r.name.trim() && r.date).length} Festivals`}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
