@@ -126,9 +126,9 @@ export function DashboardShell() {
       <header className="border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src="https://res.cloudinary.com/dp0wzw4wa/image/upload/v1776336475/JCI_YOUTH_IICS_1_fu6v42.png"
+            src="https://res.cloudinary.com/dp0wzw4wa/image/upload/q_auto/f_auto/v1776338473/JCI_YOUTH_IICS-3_1_sb89ll.png"
             alt="JCI Youth IICS"
-            className="h-10 w-auto object-contain"
+            className="h-10 w-10 rounded-full object-cover"
           />
           <div className="hidden sm:block">
             <p className="text-sm text-muted-foreground">

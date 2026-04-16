@@ -18,9 +18,9 @@ export function ProfileSelector({ members, onSelect, loading }: ProfileSelectorP
           {/* Header */}
           <div className="text-center mb-8">
             <img
-              src="https://res.cloudinary.com/dp0wzw4wa/image/upload/v1776336475/JCI_YOUTH_IICS_1_fu6v42.png"
+              src="https://res.cloudinary.com/dp0wzw4wa/image/upload/q_auto/f_auto/v1776338473/JCI_YOUTH_IICS-3_1_sb89ll.png"
               alt="JCI Youth IICS"
-              className="h-16 w-auto object-contain mx-auto mb-4"
+              className="h-20 w-20 rounded-full object-cover mx-auto mb-4"
             />
             <p className="text-sm text-muted-foreground mt-1.5">
               Select your profile to continue
