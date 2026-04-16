@@ -11,8 +11,11 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { getTaskCounts, getMemberStats, getDoneThisWeek, filterByMember, filterOverdue } from '@/lib/utils/taskHelpers'
 import { DueDateBadge } from '@/components/shared/DueDateBadge'
-import { Loader2, AlertTriangle, CheckCircle2, Clock, Shield, Check, X } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Loader2, AlertTriangle, CheckCircle2, Clock, Shield, Check, X, Plus } from 'lucide-react'
 import { toast } from 'sonner'
+import type { TaskPriority } from '@/lib/supabase/types'
 
 interface PresidentViewTabProps {
   tasks: TaskWithMember[]
@@ -25,6 +28,47 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
+  const addTask = useTaskStore((s) => s.addTask)
+
+  const [showAssignForm, setShowAssignForm] = useState(false)
+  const [assignMemberId, setAssignMemberId] = useState('')
+  const [assignTitle, setAssignTitle] = useState('')
+  const [assignDescription, setAssignDescription] = useState('')
+  const [assignPriority, setAssignPriority] = useState<TaskPriority>('normal')
+  const [assignDueDate, setAssignDueDate] = useState('')
+  const [assignSubmitting, setAssignSubmitting] = useState(false)
+
+  const resetAssignForm = () => {
+    setAssignMemberId('')
+    setAssignTitle('')
+    setAssignDescription('')
+    setAssignPriority('normal')
+    setAssignDueDate('')
+  }
+
+  const handleAssignTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!assignMemberId || !assignTitle.trim()) return
+    setAssignSubmitting(true)
+    try {
+      await addTask({
+        member_id: assignMemberId,
+        title: assignTitle.trim(),
+        description: assignDescription.trim() || undefined,
+        status: 'todo',
+        priority: assignPriority,
+        due_date: assignDueDate || undefined,
+      })
+      const member = members.find((m) => m.id === assignMemberId)
+      toast.success(`Task assigned to ${member?.name || 'member'}`)
+      resetAssignForm()
+      setShowAssignForm(false)
+    } catch {
+      toast.error('Failed to assign task')
+    } finally {
+      setAssignSubmitting(false)
+    }
+  }
 
   if (loading) {
     return <PresidentSkeleton />
@@ -66,6 +110,126 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
           </div>
         ))}
       </div>
+
+      {/* Assign Task */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Plus className="h-4 w-4 text-teal-600" />
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+              Assign Task
+            </h2>
+          </div>
+          <Button
+            variant={showAssignForm ? 'ghost' : 'default'}
+            size="sm"
+            onClick={() => { setShowAssignForm(!showAssignForm); if (showAssignForm) resetAssignForm() }}
+            className={showAssignForm ? 'gap-2' : 'gap-2 bg-teal-600 hover:bg-teal-700 text-white'}
+          >
+            {showAssignForm ? (
+              <><X className="h-3.5 w-3.5" /> Cancel</>
+            ) : (
+              <><Plus className="h-3.5 w-3.5" /> New Task</>
+            )}
+          </Button>
+        </div>
+
+        {showAssignForm && (
+          <form onSubmit={handleAssignTask} className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/30 dark:bg-teal-950/20 p-5 space-y-4 mb-2">
+            {/* Assign To — Member Selector */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">Assign To</label>
+              <div className="flex gap-2 flex-wrap">
+                {members.map((member) => (
+                  <button
+                    key={member.id}
+                    type="button"
+                    onClick={() => setAssignMemberId(member.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                      assignMemberId === member.id
+                        ? 'border-teal-400 bg-teal-100 dark:bg-teal-900/40 dark:border-teal-700'
+                        : 'border-border hover:border-teal-300 dark:hover:border-teal-700'
+                    }`}
+                  >
+                    <MemberAvatar member={member} size="sm" />
+                    <span className="font-medium text-xs">{member.name}</span>
+                  </button>
+                ))}
+              </div>
+              {!assignMemberId && <p className="text-[10px] text-muted-foreground mt-1">Select a member to assign this task to</p>}
+            </div>
+
+            {/* Task Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="md:col-span-2">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Task Title</label>
+                <Input
+                  placeholder="e.g. Prepare Q2 report, Design event banner..."
+                  value={assignTitle}
+                  onChange={(e) => setAssignTitle(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Priority</label>
+                <div className="flex gap-1">
+                  {(['low', 'normal', 'high'] as TaskPriority[]).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setAssignPriority(p)}
+                      className={`flex-1 px-3 py-2 rounded-md text-xs font-medium capitalize transition-all ${
+                        assignPriority === p
+                          ? (p as string) === 'high' ? 'bg-red-100 text-red-700 border border-red-300 dark:bg-red-900/40 dark:text-red-400 dark:border-red-700'
+                            : (p as string) === 'low' ? 'bg-blue-100 text-blue-700 border border-blue-300 dark:bg-blue-900/40 dark:text-blue-400 dark:border-blue-700'
+                            : 'bg-foreground text-background border border-foreground'
+                          : 'bg-muted text-muted-foreground border border-transparent hover:border-border'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Due Date</label>
+                <Input type="date" value={assignDueDate} onChange={(e) => setAssignDueDate(e.target.value)} />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Description (optional)</label>
+              <Textarea
+                placeholder="Add details or instructions..."
+                value={assignDescription}
+                onChange={(e) => setAssignDescription(e.target.value)}
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+
+            {/* Submit */}
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="ghost" size="sm" onClick={() => { setShowAssignForm(false); resetAssignForm() }}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={assignSubmitting || !assignMemberId || !assignTitle.trim()}
+                className="gap-2 bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                {assignSubmitting ? (
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Assigning...</>
+                ) : (
+                  <><Plus className="h-3.5 w-3.5" /> Assign Task</>
+                )}
+              </Button>
+            </div>
+          </form>
+        )}
+      </section>
 
       {/* QC Requests — tasks needing President review */}
       <section>
