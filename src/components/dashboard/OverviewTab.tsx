@@ -5,10 +5,8 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import type { TaskWithMember, Member, Event, MeetingMinutes } from '@/lib/supabase/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MemberAvatar } from '@/components/shared/MemberAvatar'
-import { filterOverdue } from '@/lib/utils/taskHelpers'
 import { formatDateKL } from '@/lib/utils/dateHelpers'
-import { DueDateBadge } from '@/components/shared/DueDateBadge'
-import { Calendar, Image as ImageIcon, AlertTriangle, Users, FileText } from 'lucide-react'
+import { Calendar, Image as ImageIcon, Users, FileText } from 'lucide-react'
 
 interface OverviewTabProps {
   tasks: TaskWithMember[]
@@ -80,9 +78,6 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
   }
   const dateKeys = Object.keys(groupedByDate).sort()
 
-  // Overdue items
-  const overdueItems = filterOverdue(tasks) as TaskWithMember[]
-
   // Upcoming events (all non-completed)
   const upcomingEvents = events
     .filter((e) => e.event_date >= today && e.status !== 'completed')
@@ -93,30 +88,6 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Overdue Alert */}
-      {overdueItems.length > 0 && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <h2 className="text-sm font-semibold text-red-800">
-              {overdueItems.length} Overdue Task{overdueItems.length !== 1 ? 's' : ''}
-            </h2>
-          </div>
-          <div className="space-y-2">
-            {overdueItems.slice(0, 5).map((task) => (
-              <div key={task.id} className="flex items-center gap-2 text-sm">
-                <MemberAvatar member={task.member} size="sm" />
-                <span className="truncate flex-1 text-red-900">{task.title}</span>
-                <DueDateBadge dueDate={task.due_date} status={task.status} />
-              </div>
-            ))}
-            {overdueItems.length > 5 && (
-              <p className="text-xs text-red-600">+{overdueItems.length - 5} more</p>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Next Meeting Card */}
       {nextMeeting && (
         <button
@@ -315,7 +286,7 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
       )}
 
       {/* Empty state */}
-      {upcomingItems.length === 0 && upcomingEvents.length === 0 && allEventsSorted.length === 0 && overdueItems.length === 0 && (
+      {upcomingItems.length === 0 && upcomingEvents.length === 0 && allEventsSorted.length === 0 && (
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <Calendar className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">No upcoming dates or events</p>

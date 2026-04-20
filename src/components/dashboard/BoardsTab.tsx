@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Plus, X, Calendar, Shield, Tag } from 'lucide-react'
+import { Plus, X, Calendar, Shield, Tag, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface BoardsTabProps {
@@ -90,6 +90,12 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, isPresiden
     return events.find((e) => e.id === eventId)?.title || null
   }
 
+  // Overdue tasks for current view
+  const today = new Date().toISOString().split('T')[0]
+  const overdueTasks = activeTasks.filter(
+    (t) => t.due_date && t.due_date < today && t.status !== 'done'
+  )
+
   if (loading) {
     return <BoardsSkeleton />
   }
@@ -137,6 +143,33 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, isPresiden
         ) : null}
         <span>{activeTasks.length} tasks</span>
       </div>
+
+      {/* Overdue Tasks Alert */}
+      {overdueTasks.length > 0 && (
+        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <h2 className="text-sm font-semibold text-red-800 dark:text-red-300">
+              {overdueTasks.length} Overdue Task{overdueTasks.length !== 1 ? 's' : ''}
+            </h2>
+          </div>
+          <div className="space-y-2">
+            {overdueTasks.map((task) => (
+              <div
+                key={task.id}
+                onClick={() => setEditingTask(task)}
+                className="flex items-center gap-2 text-sm cursor-pointer hover:bg-red-100/50 dark:hover:bg-red-900/20 rounded-lg px-2 py-1.5 -mx-2 transition-colors"
+              >
+                {isAllView && task.member && (
+                  <MemberAvatar member={task.member} size="sm" />
+                )}
+                <span className="truncate flex-1 text-red-900 dark:text-red-200">{task.title}</span>
+                <DueDateBadge dueDate={task.due_date} status={task.status} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Kanban Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
