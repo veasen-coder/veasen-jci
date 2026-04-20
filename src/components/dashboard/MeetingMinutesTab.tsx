@@ -66,10 +66,66 @@ export function MeetingMinutesTab({ members, canEdit = true }: MeetingMinutesTab
 
   const getMemberById = (id: string) => members.find((m) => m.id === id)
 
+  // Find next upcoming meeting
+  const today = new Date().toISOString().split('T')[0]
+  const nextMeeting = [...meetings]
+    .filter((m) => m.meeting_date >= today)
+    .sort((a, b) => a.meeting_date.localeCompare(b.meeting_date))[0] || null
+
   if (loading) return <MeetingsSkeleton />
 
   return (
     <div className="space-y-6">
+      {/* Next Meeting Banner */}
+      {nextMeeting && (
+        <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <h2 className="text-sm font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
+              Next Meeting
+            </h2>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-14 text-center shrink-0">
+                <p className="text-[10px] text-blue-500 dark:text-blue-400 uppercase font-medium">
+                  {formatDateKL(nextMeeting.meeting_date + 'T00:00:00', 'MMM')}
+                </p>
+                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 leading-tight">
+                  {formatDateKL(nextMeeting.meeting_date + 'T00:00:00', 'dd')}
+                </p>
+                <p className="text-[10px] text-blue-500 dark:text-blue-400">
+                  {formatDateKL(nextMeeting.meeting_date + 'T00:00:00', 'EEEE')}
+                </p>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-semibold text-foreground">{nextMeeting.title}</p>
+                {nextMeeting.agenda && (
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{nextMeeting.agenda}</p>
+                )}
+                <div className="flex items-center gap-1 mt-2">
+                  <Users className="h-3 w-3 text-muted-foreground" />
+                  <div className="flex -space-x-1.5">
+                    {nextMeeting.attendee_ids.slice(0, 5).map((id) => {
+                      const member = getMemberById(id)
+                      return member ? <MemberAvatar key={id} member={member} size="xs" /> : null
+                    })}
+                  </div>
+                  {nextMeeting.attendee_ids.length > 5 && (
+                    <span className="text-[10px] text-muted-foreground ml-1">
+                      +{nextMeeting.attendee_ids.length - 5}
+                    </span>
+                  )}
+                  <span className="text-[10px] text-muted-foreground ml-1">
+                    {nextMeeting.attendee_ids.length} attendee{nextMeeting.attendee_ids.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">

@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import type { TaskWithMember, Member, Event } from '@/lib/supabase/types'
+import type { TaskWithMember, Member, Event, MeetingMinutes } from '@/lib/supabase/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MemberAvatar } from '@/components/shared/MemberAvatar'
 import { filterOverdue } from '@/lib/utils/taskHelpers'
 import { formatDateKL } from '@/lib/utils/dateHelpers'
 import { DueDateBadge } from '@/components/shared/DueDateBadge'
-import { Calendar, Image as ImageIcon, AlertTriangle } from 'lucide-react'
+import { Calendar, Image as ImageIcon, AlertTriangle, Users, FileText } from 'lucide-react'
 
 interface OverviewTabProps {
   tasks: TaskWithMember[]
@@ -22,11 +22,16 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const [events, setEvents] = useState<Event[]>([])
+  const [meetings, setMeetings] = useState<MeetingMinutes[]>([])
 
   useEffect(() => {
     fetch('/api/events')
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setEvents(data) })
+      .catch(() => {})
+    fetch('/api/meetings')
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setMeetings(data) })
       .catch(() => {})
   }, [])
 
@@ -40,8 +45,15 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
+  const getMemberById = (id: string) => members.find((m) => m.id === id)
+
   const today = new Date().toISOString().split('T')[0]
   const in30Days = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+  // Find next upcoming meeting
+  const nextMeeting = [...meetings]
+    .filter((m) => m.meeting_date >= today)
+    .sort((a, b) => a.meeting_date.localeCompare(b.meeting_date))[0] || null
 
   // Upcoming timeline: tasks + events in the next 30 days
   const upcomingItems: { date: string; title: string; type: 'task' | 'event'; status: string; member?: Member; id: string }[] = []
@@ -103,6 +115,52 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
             )}
           </div>
         </div>
+      )}
+
+      {/* Next Meeting Card */}
+      {nextMeeting && (
+        <button
+          onClick={() => navigateToTab('meetings')}
+          className="w-full rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 p-5 text-left hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <h2 className="text-sm font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
+              Next Meeting
+            </h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-14 text-center shrink-0">
+              <p className="text-[10px] text-blue-500 dark:text-blue-400 uppercase font-medium">
+                {formatDateKL(nextMeeting.meeting_date + 'T00:00:00', 'MMM')}
+              </p>
+              <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 leading-tight">
+                {formatDateKL(nextMeeting.meeting_date + 'T00:00:00', 'dd')}
+              </p>
+              <p className="text-[10px] text-blue-500 dark:text-blue-400">
+                {formatDateKL(nextMeeting.meeting_date + 'T00:00:00', 'EEEE')}
+              </p>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-semibold text-foreground">{nextMeeting.title}</p>
+              {nextMeeting.agenda && (
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{nextMeeting.agenda}</p>
+              )}
+              <div className="flex items-center gap-1.5 mt-2">
+                <Users className="h-3 w-3 text-muted-foreground" />
+                <div className="flex -space-x-1.5">
+                  {nextMeeting.attendee_ids.slice(0, 5).map((id) => {
+                    const member = getMemberById(id)
+                    return member ? <MemberAvatar key={id} member={member} size="xs" /> : null
+                  })}
+                </div>
+                <span className="text-[10px] text-muted-foreground">
+                  {nextMeeting.attendee_ids.length} attendee{nextMeeting.attendee_ids.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+          </div>
+        </button>
       )}
 
       {/* Upcoming Events Cards */}
