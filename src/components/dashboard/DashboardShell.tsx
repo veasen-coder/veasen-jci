@@ -11,6 +11,7 @@ import { EventsTab } from './EventsTab'
 import { BoardsTab } from './BoardsTab'
 import { MeetingMinutesTab } from './MeetingMinutesTab'
 import { MarketingTab } from './MarketingTab'
+import { PartnershipsTab } from './PartnershipsTab'
 import { IntegrationsTab } from './IntegrationsTab'
 import { ResourcesTab } from './ResourcesTab'
 import { Shield, X, Lock, ChevronDown, LogOut } from 'lucide-react'
@@ -27,6 +28,7 @@ const tabs = [
   { id: 'boards', label: 'My Board' },
   { id: 'meetings', label: 'Meeting Minutes' },
   { id: 'marketing', label: 'Marketing' },
+  { id: 'partnerships', label: 'Partnerships' },
   { id: 'resources', label: 'Resources' },
   { id: 'integrations', label: 'Integrations' },
 ] as const
@@ -242,6 +244,7 @@ export function DashboardShell() {
         {activeTab === 'boards' && <BoardsTab tasks={isPresident ? tasks : myTasks} members={members} loading={loading} activeProfileId={activeProfileId} isPresident={isPresident} onMemberClick={(member) => setProfileMemberId(member.id)} />}
         {activeTab === 'meetings' && <MeetingMinutesTab members={members} canEdit={isPresident || isSecretary} />}
         {activeTab === 'marketing' && <MarketingTab members={members} canEdit={isPresident || isMarketing} />}
+        {activeTab === 'partnerships' && <PartnershipsTab canEdit={isPresident || isMarketing} />}
         {activeTab === 'resources' && <ResourcesTab />}
         {activeTab === 'integrations' && isPresident && <IntegrationsTab />}
       </main>

@@ -4,6 +4,8 @@ export type EventStatus = 'planning' | 'in-progress' | 'completed'
 export type MarketingPlatform = 'instagram' | 'facebook' | 'tiktok' | 'twitter' | 'linkedin' | 'other'
 export type MarketingStatus = 'draft' | 'scheduled' | 'posted'
 export type MarketingCategory = 'festival' | 'event_poster' | 'club_promotion'
+export type PartnershipStage = 'list' | 'contacted' | 'negotiating' | 'closed'
+export type ContentIdeaStatus = 'idea' | 'approved' | 'in-progress' | 'published'
 
 export interface Member {
   id: string
@@ -57,6 +59,34 @@ export interface MarketingPost {
   content_url: string | null
   event_id: string | null
   poster_done: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Partnership {
+  id: string
+  name: string
+  company: string | null
+  stage: PartnershipStage
+  contact_name: string | null
+  contact_email: string | null
+  contact_phone: string | null
+  benefits: string | null
+  notes: string | null
+  logo_url: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ContentIdea {
+  id: string
+  title: string
+  description: string | null
+  platform: MarketingPlatform
+  status: ContentIdeaStatus
+  target_date: string | null
+  assigned_to: string | null
+  reference_url: string | null
   created_at: string
   updated_at: string
 }

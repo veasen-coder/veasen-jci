@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { MarketingPost, MarketingPlatform, MarketingStatus, MarketingCategory, Member, Event } from '@/lib/supabase/types'
+import type { MarketingPost, MarketingPlatform, MarketingStatus, MarketingCategory, ContentIdea, ContentIdeaStatus, Member, Event } from '@/lib/supabase/types'
 import { MemberAvatar } from '@/components/shared/MemberAvatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Upload,
+  Lightbulb,
+  Sparkles,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -43,6 +45,14 @@ interface MarketingTabProps {
   canEdit?: boolean
 }
 
+type MarketingView = 'overview' | 'tasks' | 'content'
+
+const marketingViews: { id: MarketingView; label: string; icon: React.ReactNode }[] = [
+  { id: 'overview', label: 'Overview', icon: <GanttChart className="h-3.5 w-3.5" /> },
+  { id: 'tasks', label: 'Tasks', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+  { id: 'content', label: 'Content Ideas', icon: <Lightbulb className="h-3.5 w-3.5" /> },
+]
+
 export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
   const [posts, setPosts] = useState<MarketingPost[]>([])
   const [events, setEvents] = useState<Event[]>([])
@@ -50,6 +60,7 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
   const [showForm, setShowForm] = useState<MarketingCategory | 'festival_bulk' | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
+  const [activeView, setActiveView] = useState<MarketingView>('overview')
 
   const toggleSection = (key: string) => setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }))
 
@@ -118,158 +129,193 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Marketing</h2>
-        <p className="text-xs text-muted-foreground mt-1">{posts.length} item{posts.length !== 1 ? 's' : ''} tracked</p>
+      {/* Header with View Switcher */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Marketing</h2>
+          <p className="text-xs text-muted-foreground mt-1">{posts.length} item{posts.length !== 1 ? 's' : ''} tracked</p>
+        </div>
+
+        {/* View Switcher */}
+        <div className="inline-flex items-center rounded-full bg-muted p-1">
+          {marketingViews.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => setActiveView(v.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-full transition-all ${
+                activeView === v.id
+                  ? 'bg-violet-600 text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {v.icon}
+              {v.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MetricCard icon={<PartyPopper className="h-4 w-4 text-amber-500" />} label="Festivals" value={festivalPosts.length} sub={`${festivalPosts.filter((p) => p.poster_done).length} done`} />
-        <MetricCard icon={<ImageIcon className="h-4 w-4 text-violet-500" />} label="Event Posters" value={posterPosts.length} sub={`${posterPosts.filter((p) => p.poster_done).length} done`} />
-        <MetricCard icon={<Film className="h-4 w-4 text-teal-500" />} label="Promotions" value={promoPosts.length} sub={`${promoPosts.filter((p) => p.status === 'posted').length} posted`} />
-        <MetricCard
-          icon={overdue > 0 ? <AlertTriangle className="h-4 w-4 text-red-500" /> : <CheckCircle2 className="h-4 w-4 text-green-500" />}
-          label={overdue > 0 ? 'Overdue' : 'Completed'}
-          value={overdue > 0 ? overdue : totalDone}
-          sub={upcoming > 0 ? `${upcoming} due this week` : 'All on track'}
-          alert={overdue > 0}
-        />
-      </div>
+      {/* OVERVIEW VIEW */}
+      {activeView === 'overview' && (
+        <div className="space-y-6">
+          {/* Metric Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <MetricCard icon={<PartyPopper className="h-4 w-4 text-amber-500" />} label="Festivals" value={festivalPosts.length} sub={`${festivalPosts.filter((p) => p.poster_done).length} done`} />
+            <MetricCard icon={<ImageIcon className="h-4 w-4 text-violet-500" />} label="Event Posters" value={posterPosts.length} sub={`${posterPosts.filter((p) => p.poster_done).length} done`} />
+            <MetricCard icon={<Film className="h-4 w-4 text-teal-500" />} label="Promotions" value={promoPosts.length} sub={`${promoPosts.filter((p) => p.status === 'posted').length} posted`} />
+            <MetricCard
+              icon={overdue > 0 ? <AlertTriangle className="h-4 w-4 text-red-500" /> : <CheckCircle2 className="h-4 w-4 text-green-500" />}
+              label={overdue > 0 ? 'Overdue' : 'Completed'}
+              value={overdue > 0 ? overdue : totalDone}
+              sub={upcoming > 0 ? `${upcoming} due this week` : 'All on track'}
+              alert={overdue > 0}
+            />
+          </div>
 
-      {/* Roadmap Timeline */}
-      <CollapsibleSection
-        title="Roadmap Timeline"
-        icon={<GanttChart className="h-4 w-4" />}
-        count={posts.filter((p) => p.due_date).length}
-        collapsed={collapsedSections['roadmap']}
-        onToggle={() => toggleSection('roadmap')}
-      >
-        <RoadmapTimeline posts={posts} members={members} />
-      </CollapsibleSection>
-
-      {/* Festival Dates */}
-      <CollapsibleSection
-        title="Festival Dates"
-        icon={<PartyPopper className="h-4 w-4 text-amber-500" />}
-        count={festivalPosts.length}
-        collapsed={collapsedSections['festival']}
-        onToggle={() => toggleSection('festival')}
-        onAdd={canEdit ? () => setShowForm(showForm === 'festival' ? null : 'festival') : undefined}
-        accentColor="amber"
-      >
-        {canEdit && (showForm === 'festival' || showForm === 'festival_bulk') && (
-          <div className="mb-3">
-            {/* Toggle between single and bulk */}
-            <div className="flex gap-1 mb-3">
-              <button
-                onClick={() => setShowForm('festival')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  showForm === 'festival' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Single
-              </button>
-              <button
-                onClick={() => setShowForm('festival_bulk')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  showForm === 'festival_bulk' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Bulk Upload
-              </button>
+          {/* Roadmap Timeline (always expanded in overview) */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/20">
+              <GanttChart className="h-4 w-4" />
+              <span className="text-sm font-semibold uppercase tracking-wide">Roadmap Timeline</span>
+              <span className="text-xs text-muted-foreground">({posts.filter((p) => p.due_date).length})</span>
             </div>
-            {showForm === 'festival' && (
+            <div className="p-4">
+              <RoadmapTimeline posts={posts} members={members} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TASKS VIEW */}
+      {activeView === 'tasks' && (
+        <div className="space-y-6">
+          {/* Festival Dates */}
+          <CollapsibleSection
+            title="Festival Dates"
+            icon={<PartyPopper className="h-4 w-4 text-amber-500" />}
+            count={festivalPosts.length}
+            collapsed={collapsedSections['festival']}
+            onToggle={() => toggleSection('festival')}
+            onAdd={canEdit ? () => setShowForm(showForm === 'festival' ? null : 'festival') : undefined}
+            accentColor="amber"
+          >
+            {canEdit && (showForm === 'festival' || showForm === 'festival_bulk') && (
+              <div className="mb-3">
+                <div className="flex gap-1 mb-3">
+                  <button
+                    onClick={() => setShowForm('festival')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      showForm === 'festival' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Single
+                  </button>
+                  <button
+                    onClick={() => setShowForm('festival_bulk')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      showForm === 'festival_bulk' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Bulk Upload
+                  </button>
+                </div>
+                {showForm === 'festival' && (
+                  <CreateForm
+                    category="festival"
+                    members={members}
+                    events={events}
+                    onSave={(post) => { setPosts((prev) => [post, ...prev]); setShowForm(null); setExpandedId(post.id) }}
+                    onCancel={() => setShowForm(null)}
+                  />
+                )}
+                {showForm === 'festival_bulk' && (
+                  <BulkFestivalForm
+                    onSave={(newPosts) => { setPosts((prev) => [...newPosts, ...prev]); setShowForm(null) }}
+                    onCancel={() => setShowForm(null)}
+                  />
+                )}
+              </div>
+            )}
+            <FestivalList
+              posts={festivalPosts}
+              expandedId={expandedId}
+              setExpandedId={setExpandedId}
+              members={members}
+              onToggleDone={togglePosterDone}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+              canEdit={canEdit}
+            />
+          </CollapsibleSection>
+
+          {/* Event Posters */}
+          <CollapsibleSection
+            title="Event Posters"
+            icon={<ImageIcon className="h-4 w-4 text-violet-500" />}
+            count={posterPosts.length}
+            collapsed={collapsedSections['event_poster']}
+            onToggle={() => toggleSection('event_poster')}
+            onAdd={canEdit ? () => setShowForm(showForm === 'event_poster' ? null : 'event_poster') : undefined}
+            accentColor="violet"
+          >
+            {canEdit && showForm === 'event_poster' && (
               <CreateForm
-                category="festival"
+                category="event_poster"
                 members={members}
                 events={events}
                 onSave={(post) => { setPosts((prev) => [post, ...prev]); setShowForm(null); setExpandedId(post.id) }}
                 onCancel={() => setShowForm(null)}
               />
             )}
-            {showForm === 'festival_bulk' && (
-              <BulkFestivalForm
-                onSave={(newPosts) => { setPosts((prev) => [...newPosts, ...prev]); setShowForm(null) }}
+            <EventPosterList
+              posts={posterPosts}
+              events={events}
+              expandedId={expandedId}
+              setExpandedId={setExpandedId}
+              members={members}
+              onToggleDone={togglePosterDone}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+              canEdit={canEdit}
+            />
+          </CollapsibleSection>
+
+          {/* Club Promotion */}
+          <CollapsibleSection
+            title="Club Promotion"
+            icon={<Film className="h-4 w-4 text-teal-500" />}
+            count={promoPosts.length}
+            collapsed={collapsedSections['club_promotion']}
+            onToggle={() => toggleSection('club_promotion')}
+            onAdd={canEdit ? () => setShowForm(showForm === 'club_promotion' ? null : 'club_promotion') : undefined}
+            accentColor="teal"
+          >
+            {canEdit && showForm === 'club_promotion' && (
+              <CreateForm
+                category="club_promotion"
+                members={members}
+                events={events}
+                onSave={(post) => { setPosts((prev) => [post, ...prev]); setShowForm(null); setExpandedId(post.id) }}
                 onCancel={() => setShowForm(null)}
               />
             )}
-          </div>
-        )}
-        <FestivalList
-          posts={festivalPosts}
-          expandedId={expandedId}
-          setExpandedId={setExpandedId}
-          members={members}
-          onToggleDone={togglePosterDone}
-          onUpdate={handleUpdate}
-          onDelete={handleDelete}
-          canEdit={canEdit}
-        />
-      </CollapsibleSection>
+            <ClubPromotionList
+              posts={promoPosts}
+              expandedId={expandedId}
+              setExpandedId={setExpandedId}
+              members={members}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+              canEdit={canEdit}
+            />
+          </CollapsibleSection>
+        </div>
+      )}
 
-      {/* Event Posters */}
-      <CollapsibleSection
-        title="Event Posters"
-        icon={<ImageIcon className="h-4 w-4 text-violet-500" />}
-        count={posterPosts.length}
-        collapsed={collapsedSections['event_poster']}
-        onToggle={() => toggleSection('event_poster')}
-        onAdd={canEdit ? () => setShowForm(showForm === 'event_poster' ? null : 'event_poster') : undefined}
-        accentColor="violet"
-      >
-        {canEdit && showForm === 'event_poster' && (
-          <CreateForm
-            category="event_poster"
-            members={members}
-            events={events}
-            onSave={(post) => { setPosts((prev) => [post, ...prev]); setShowForm(null); setExpandedId(post.id) }}
-            onCancel={() => setShowForm(null)}
-          />
-        )}
-        <EventPosterList
-          posts={posterPosts}
-          events={events}
-          expandedId={expandedId}
-          setExpandedId={setExpandedId}
-          members={members}
-          onToggleDone={togglePosterDone}
-          onUpdate={handleUpdate}
-          onDelete={handleDelete}
-          canEdit={canEdit}
-        />
-      </CollapsibleSection>
-
-      {/* Club Promotion */}
-      <CollapsibleSection
-        title="Club Promotion"
-        icon={<Film className="h-4 w-4 text-teal-500" />}
-        count={promoPosts.length}
-        collapsed={collapsedSections['club_promotion']}
-        onToggle={() => toggleSection('club_promotion')}
-        onAdd={canEdit ? () => setShowForm(showForm === 'club_promotion' ? null : 'club_promotion') : undefined}
-        accentColor="teal"
-      >
-        {canEdit && showForm === 'club_promotion' && (
-          <CreateForm
-            category="club_promotion"
-            members={members}
-            events={events}
-            onSave={(post) => { setPosts((prev) => [post, ...prev]); setShowForm(null); setExpandedId(post.id) }}
-            onCancel={() => setShowForm(null)}
-          />
-        )}
-        <ClubPromotionList
-          posts={promoPosts}
-          expandedId={expandedId}
-          setExpandedId={setExpandedId}
-          members={members}
-          onUpdate={handleUpdate}
-          onDelete={handleDelete}
-          canEdit={canEdit}
-        />
-      </CollapsibleSection>
+      {/* CONTENT IDEAS VIEW */}
+      {activeView === 'content' && (
+        <ContentIdeasSection members={members} canEdit={canEdit} />
+      )}
     </div>
   )
 }
@@ -1147,5 +1193,399 @@ function MarketingSkeleton() {
       </div>
       {Array.from({ length: 3 }).map((_, i) => (<Skeleton key={i} className="h-32 rounded-xl" />))}
     </div>
+  )
+}
+
+/* ============= CONTENT IDEAS SECTION ============= */
+const ideaStatusConfig: Record<ContentIdeaStatus, { label: string; color: string; dot: string }> = {
+  idea: { label: 'Idea', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', dot: 'bg-amber-500' },
+  approved: { label: 'Approved', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', dot: 'bg-blue-500' },
+  'in-progress': { label: 'In Progress', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', dot: 'bg-violet-500' },
+  published: { label: 'Published', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', dot: 'bg-green-500' },
+}
+
+const ideaStatuses: ContentIdeaStatus[] = ['idea', 'approved', 'in-progress', 'published']
+
+function ContentIdeasSection({ members, canEdit }: { members: Member[]; canEdit: boolean }) {
+  const [ideas, setIdeas] = useState<ContentIdea[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [filterStatus, setFilterStatus] = useState<ContentIdeaStatus | 'all'>('all')
+
+  const fetchIdeas = useCallback(async () => {
+    try {
+      const res = await fetch('/api/content-ideas')
+      if (!res.ok) throw new Error('Failed to fetch')
+      const data = await res.json()
+      if (Array.isArray(data)) setIdeas(data)
+    } catch {
+      toast.error('Failed to load content ideas')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchIdeas()
+  }, [fetchIdeas])
+
+  const handleUpdate = async (id: string, updates: Partial<ContentIdea>) => {
+    setIdeas((prev) => prev.map((i) => (i.id === id ? { ...i, ...updates } : i)))
+    try {
+      const res = await fetch(`/api/content-ideas/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      if (!res.ok) throw new Error()
+      const updated = await res.json()
+      setIdeas((prev) => prev.map((i) => (i.id === id ? updated : i)))
+    } catch {
+      toast.error('Failed to update')
+      fetchIdeas()
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/content-ideas/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      setIdeas((prev) => prev.filter((i) => i.id !== id))
+      toast.success('Deleted')
+    } catch {
+      toast.error('Failed to delete')
+    }
+  }
+
+  if (loading) return <Skeleton className="h-64 rounded-xl" />
+
+  const filteredIdeas = filterStatus === 'all' ? ideas : ideas.filter((i) => i.status === filterStatus)
+  const counts: Record<ContentIdeaStatus | 'all', number> = {
+    all: ideas.length,
+    idea: ideas.filter((i) => i.status === 'idea').length,
+    approved: ideas.filter((i) => i.status === 'approved').length,
+    'in-progress': ideas.filter((i) => i.status === 'in-progress').length,
+    published: ideas.filter((i) => i.status === 'published').length,
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-violet-500" />
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Content Ideas</h3>
+          <span className="text-xs text-muted-foreground">({ideas.length})</span>
+        </div>
+        {canEdit && (
+          <Button onClick={() => setShowForm(!showForm)} size="sm" className="gap-1.5">
+            <Plus className="h-3.5 w-3.5" />
+            New Idea
+          </Button>
+        )}
+      </div>
+
+      {/* Status Filter */}
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={() => setFilterStatus('all')}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            filterStatus === 'all' ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          All ({counts.all})
+        </button>
+        {ideaStatuses.map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilterStatus(status)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              filterStatus === status ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${ideaStatusConfig[status].dot}`} />
+            {ideaStatusConfig[status].label} ({counts[status]})
+          </button>
+        ))}
+      </div>
+
+      {/* Create Form */}
+      {canEdit && showForm && (
+        <ContentIdeaForm
+          members={members}
+          onSave={(idea) => {
+            setIdeas((prev) => [idea, ...prev])
+            setShowForm(false)
+          }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+
+      {/* Ideas Grid */}
+      {filteredIdeas.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
+          <Lightbulb className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">
+            {filterStatus === 'all' ? 'No content ideas yet' : `No ${ideaStatusConfig[filterStatus as ContentIdeaStatus].label.toLowerCase()} ideas`}
+          </p>
+          {canEdit && filterStatus === 'all' && (
+            <Button variant="outline" size="sm" className="mt-3 gap-1.5" onClick={() => setShowForm(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              Add your first idea
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filteredIdeas.map((idea) => (
+            <ContentIdeaCard
+              key={idea.id}
+              idea={idea}
+              members={members}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+              canEdit={canEdit}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ContentIdeaCard({
+  idea,
+  members,
+  onUpdate,
+  onDelete,
+  canEdit,
+}: {
+  idea: ContentIdea
+  members: Member[]
+  onUpdate: (id: string, updates: Partial<ContentIdea>) => void
+  onDelete: (id: string) => void
+  canEdit: boolean
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const assignee = idea.assigned_to ? members.find((m) => m.id === idea.assigned_to) : null
+  const statusConfig = ideaStatusConfig[idea.status]
+
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-md transition-shadow">
+      <div className="p-4 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-semibold flex-1">{idea.title}</p>
+          {canEdit && (
+            <button
+              onClick={() => {
+                if (confirm('Delete this idea?')) onDelete(idea.id)
+              }}
+              className="shrink-0 text-muted-foreground hover:text-red-500 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        {idea.description && (
+          <p className={`text-xs text-muted-foreground ${expanded ? '' : 'line-clamp-3'}`}>
+            {idea.description}
+          </p>
+        )}
+
+        <div className="flex items-center gap-2 flex-wrap pt-1">
+          <span className={`rounded-md text-[10px] font-semibold px-2 py-0.5 ${statusConfig.color}`}>
+            {statusConfig.label}
+          </span>
+          <span className="text-[10px] text-muted-foreground capitalize">{idea.platform}</span>
+          {idea.target_date && (
+            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+              <Calendar className="h-2.5 w-2.5" />
+              {new Date(idea.target_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <select
+                value={idea.status}
+                onChange={(e) => onUpdate(idea.id, { status: e.target.value as ContentIdeaStatus })}
+                className="text-[10px] rounded border border-border bg-background px-1.5 py-0.5 font-medium"
+              >
+                {ideaStatuses.map((s) => (
+                  <option key={s} value={s}>{ideaStatusConfig[s].label}</option>
+                ))}
+              </select>
+            )}
+            {idea.reference_url && (
+              <a
+                href={idea.reference_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-0.5 text-[10px] text-blue-600 hover:underline"
+              >
+                <ExternalLink className="h-2.5 w-2.5" />
+                Reference
+              </a>
+            )}
+          </div>
+          {assignee && (
+            <div
+              className="h-5 w-5 rounded-full flex items-center justify-center text-[8px] font-semibold shrink-0"
+              style={{ backgroundColor: assignee.bg_hex, color: assignee.color_hex }}
+              title={assignee.name}
+            >
+              {assignee.initials}
+            </div>
+          )}
+        </div>
+
+        {idea.description && idea.description.length > 100 && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-[10px] text-violet-600 hover:underline"
+          >
+            {expanded ? 'Show less' : 'Show more'}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ContentIdeaForm({
+  members,
+  onSave,
+  onCancel,
+}: {
+  members: Member[]
+  onSave: (idea: ContentIdea) => void
+  onCancel: () => void
+}) {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [platform, setPlatform] = useState<MarketingPlatform>('instagram')
+  const [status, setStatus] = useState<ContentIdeaStatus>('idea')
+  const [targetDate, setTargetDate] = useState('')
+  const [assignedTo, setAssignedTo] = useState('')
+  const [referenceUrl, setReferenceUrl] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim()) return
+    setSaving(true)
+    try {
+      const res = await fetch('/api/content-ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || null,
+          platform,
+          status,
+          target_date: targetDate || null,
+          assigned_to: assignedTo || null,
+          reference_url: referenceUrl.trim() || null,
+        }),
+      })
+      if (!res.ok) throw new Error()
+      const idea = await res.json()
+      onSave(idea)
+      toast.success('Idea created')
+    } catch {
+      toast.error('Failed to create idea')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/30 dark:bg-violet-950/20 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <Lightbulb className="h-4 w-4 text-violet-500" />
+          New Content Idea
+        </h3>
+        <button type="button" onClick={onCancel}><X className="h-4 w-4 text-muted-foreground" /></button>
+      </div>
+
+      <Input
+        placeholder="Idea title (e.g. 'Member spotlight reel')"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        autoFocus
+        required
+      />
+
+      <Textarea
+        placeholder="Describe the idea, concept, script..."
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        rows={3}
+        className="resize-none text-sm"
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Platform</label>
+          <select
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value as MarketingPlatform)}
+            className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
+          >
+            {allPlatforms.map((p) => (<option key={p} value={p}>{platformLabels[p]}</option>))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as ContentIdeaStatus)}
+            className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
+          >
+            {ideaStatuses.map((s) => (<option key={s} value={s}>{ideaStatusConfig[s].label}</option>))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Target Date</label>
+          <Input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} className="text-sm" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Assigned To</label>
+          <select
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+            className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
+          >
+            <option value="">Unassigned</option>
+            {members.map((m) => (<option key={m.id} value={m.id}>{m.name}</option>))}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">Reference URL (inspiration)</label>
+        <Input
+          type="url"
+          placeholder="https://..."
+          value={referenceUrl}
+          onChange={(e) => setReferenceUrl(e.target.value)}
+          className="text-sm"
+        />
+      </div>
+
+      <div className="flex items-center gap-2 pt-1">
+        <Button type="submit" size="sm" disabled={saving || !title.trim()}>
+          {saving ? 'Creating...' : 'Create Idea'}
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>
+      </div>
+    </form>
   )
 }
