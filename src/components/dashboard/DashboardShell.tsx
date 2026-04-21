@@ -64,6 +64,7 @@ export function DashboardShell() {
   const isPresident = role === 'president'
   const isSecretary = role === 'secretary'
   const isMarketing = role.includes('marketing')
+  const isMembership = role.includes('membership')
 
   // Filter tasks for the active profile (used for non-president tabs)
   const myTasks = activeProfileId
@@ -244,7 +245,7 @@ export function DashboardShell() {
         {activeTab === 'boards' && <BoardsTab tasks={isPresident ? tasks : myTasks} members={members} loading={loading} activeProfileId={activeProfileId} isPresident={isPresident} onMemberClick={(member) => setProfileMemberId(member.id)} />}
         {activeTab === 'meetings' && <MeetingMinutesTab members={members} canEdit={isPresident || isSecretary} />}
         {activeTab === 'marketing' && <MarketingTab members={members} canEdit={isPresident || isMarketing} />}
-        {activeTab === 'partnerships' && <PartnershipsTab canEdit={isPresident || isMarketing} />}
+        {activeTab === 'partnerships' && <PartnershipsTab canEdit={isPresident || isMembership} />}
         {activeTab === 'resources' && <ResourcesTab />}
         {activeTab === 'integrations' && isPresident && <IntegrationsTab />}
       </main>

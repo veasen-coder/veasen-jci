@@ -87,6 +87,7 @@ export interface ContentIdea {
   target_date: string | null
   assigned_to: string | null
   reference_url: string | null
+  needs_qc: boolean
   created_at: string
   updated_at: string
 }

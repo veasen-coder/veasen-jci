@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
       target_date: body.target_date || null,
       assigned_to: body.assigned_to || null,
       reference_url: body.reference_url || null,
+      needs_qc: body.needs_qc || false,
     })
     .select()
     .single()

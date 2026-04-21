@@ -26,6 +26,7 @@ import {
   Upload,
   Lightbulb,
   Sparkles,
+  Shield,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -1370,8 +1371,17 @@ function ContentIdeaCard({
   const assignee = idea.assigned_to ? members.find((m) => m.id === idea.assigned_to) : null
   const statusConfig = ideaStatusConfig[idea.status]
 
+  const toggleQC = () => {
+    onUpdate(idea.id, { needs_qc: !idea.needs_qc })
+    toast.success(idea.needs_qc ? 'QC request cancelled' : 'QC requested from President')
+  }
+
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-md transition-shadow">
+    <div className={`rounded-xl border overflow-hidden hover:shadow-md transition-shadow ${
+      idea.needs_qc
+        ? 'border-violet-300 dark:border-violet-700 bg-violet-50/30 dark:bg-violet-950/10'
+        : 'border-border bg-card'
+    }`}>
       <div className="p-4 space-y-2">
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-semibold flex-1">{idea.title}</p>
@@ -1402,6 +1412,12 @@ function ContentIdeaCard({
             <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
               <Calendar className="h-2.5 w-2.5" />
               {new Date(idea.target_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            </span>
+          )}
+          {idea.needs_qc && (
+            <span className="flex items-center gap-0.5 rounded-md text-[10px] font-bold px-1.5 py-0.5 bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+              <Shield className="h-2.5 w-2.5" />
+              QC Requested
             </span>
           )}
         </div>
@@ -1441,6 +1457,21 @@ function ContentIdeaCard({
             </div>
           )}
         </div>
+
+        {/* QC Request Button */}
+        {canEdit && (
+          <button
+            onClick={toggleQC}
+            className={`w-full flex items-center justify-center gap-1.5 rounded-lg text-[11px] font-medium px-2 py-1.5 mt-2 transition-colors ${
+              idea.needs_qc
+                ? 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:hover:bg-violet-900/60'
+                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+            }`}
+          >
+            <Shield className="h-3 w-3" />
+            {idea.needs_qc ? 'Cancel QC Request' : 'Request QC from President'}
+          </button>
+        )}
 
         {idea.description && idea.description.length > 100 && (
           <button
