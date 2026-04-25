@@ -92,7 +92,16 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       })
       if (!res.ok) throw new Error('Failed to create task')
       const newTask = await res.json()
-      set((state) => ({ tasks: [newTask, ...state.tasks] }))
+      // Dedupe: realtime INSERT may have arrived first.
+      // If task is already in store, replace it (POST returns hydrated member);
+      // otherwise prepend it.
+      set((state) => {
+        const exists = state.tasks.some((t) => t.id === newTask.id)
+        if (exists) {
+          return { tasks: state.tasks.map((t) => (t.id === newTask.id ? newTask : t)) }
+        }
+        return { tasks: [newTask, ...state.tasks] }
+      })
     } catch (err) {
       set({ error: (err as Error).message })
       throw err
