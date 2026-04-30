@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   DragDropContext,
@@ -50,6 +50,20 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, isPresiden
   const [events, setEvents] = useState<Event[]>([])
   const updateTask = useTaskStore((s) => s.updateTask)
 
+  // Defense-in-depth: dedup tasks by ID before rendering to ensure no
+  // race condition can show duplicate cards in the UI.
+  const dedupedTasks = useMemo(() => {
+    const seen = new Set<string>()
+    const out: TaskWithMember[] = []
+    for (const t of tasks) {
+      if (!seen.has(t.id)) {
+        seen.add(t.id)
+        out.push(t)
+      }
+    }
+    return out
+  }, [tasks])
+
   useEffect(() => {
     fetch('/api/events')
       .then((r) => r.json())
@@ -59,7 +73,7 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, isPresiden
 
   const isAllView = selectedMemberId === 'all'
   const selectedMember = members.find((m) => m.id === selectedMemberId)
-  const activeTasks = isAllView ? tasks : filterByMember(tasks, selectedMemberId) as TaskWithMember[]
+  const activeTasks = isAllView ? dedupedTasks : filterByMember(dedupedTasks, selectedMemberId) as TaskWithMember[]
 
   const getColumnTasks = (columnId: ColumnId) => {
     if (columnId === 'in-progress') {
@@ -271,11 +285,16 @@ function AddTaskInline({ memberId, status }: { memberId: string; status: TaskSta
   const [dueDate, setDueDate] = useState('')
   const [priority, setPriority] = useState<TaskPriority>('normal')
   const [submitting, setSubmitting] = useState(false)
+  // Ref-based guard: synchronously blocks re-entry, even if React hasn't
+  // re-rendered the disabled button between rapid Enter keypresses.
+  const inFlightRef = useRef(false)
   const addTask = useTaskStore((s) => s.addTask)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
+    if (inFlightRef.current) return
+    inFlightRef.current = true
 
     setSubmitting(true)
     try {
@@ -297,6 +316,7 @@ function AddTaskInline({ memberId, status }: { memberId: string; status: TaskSta
       toast.error('Failed to create task')
     } finally {
       setSubmitting(false)
+      inFlightRef.current = false
     }
   }
 

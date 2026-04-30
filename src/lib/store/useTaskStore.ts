@@ -152,13 +152,16 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   handleRealtimeInsert: (task) => {
-    const { members, tasks } = get()
+    const { members } = get()
     const member = members.find((m) => m.id === task.member_id)
     if (!member) return
-    const exists = tasks.find((t) => t.id === task.id)
-    if (exists) return
-    const taskWithMember: TaskWithMember = { ...task, member }
-    set((state) => ({ tasks: [taskWithMember, ...state.tasks] }))
+    // Atomic dedup: existence check happens inside the set callback so it
+    // sees the freshest state even if multiple inserts fire back-to-back.
+    set((state) => {
+      if (state.tasks.some((t) => t.id === task.id)) return state
+      const taskWithMember: TaskWithMember = { ...task, member }
+      return { tasks: [taskWithMember, ...state.tasks] }
+    })
   },
 
   handleRealtimeUpdate: (task) => {
