@@ -206,7 +206,7 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
                   <button
                     onClick={() => setShowForm('festival')}
                     className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      showForm === 'festival' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
+                      showForm === 'festival' ? 'bg-amber-100 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Single
@@ -214,7 +214,7 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
                   <button
                     onClick={() => setShowForm('festival_bulk')}
                     className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      showForm === 'festival_bulk' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
+                      showForm === 'festival_bulk' ? 'bg-amber-100 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Bulk Upload
@@ -730,7 +730,7 @@ function BulkFestivalForm({
               onClick={() => toggleFestival(festival.originalIndex)}
               className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-all ${
                 isSelected
-                  ? 'bg-amber-100 dark:bg-amber-950/50 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700'
+                  ? 'bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700'
                   : 'bg-card border border-border hover:border-amber-200 dark:hover:border-amber-800'
               }`}
             >
@@ -1199,10 +1199,10 @@ function MarketingSkeleton() {
 
 /* ============= CONTENT IDEAS SECTION ============= */
 const ideaStatusConfig: Record<ContentIdeaStatus, { label: string; color: string; dot: string }> = {
-  idea: { label: 'Idea', color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30 dark:text-amber-400', dot: 'bg-amber-500' },
-  approved: { label: 'Approved', color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 dark:bg-blue-900/30 dark:text-blue-400', dot: 'bg-blue-500' },
-  'in-progress': { label: 'In Progress', color: 'bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 dark:bg-violet-900/30 dark:text-violet-400', dot: 'bg-violet-500' },
-  published: { label: 'Published', color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300 dark:bg-green-900/30 dark:text-green-400', dot: 'bg-green-500' },
+  idea: { label: 'Idea', color: 'bg-amber-100 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30', dot: 'bg-amber-500' },
+  approved: { label: 'Approved', color: 'bg-blue-100 text-blue-700 dark:text-blue-300 dark:bg-blue-900/30', dot: 'bg-blue-500' },
+  'in-progress': { label: 'In Progress', color: 'bg-violet-100 text-violet-700 dark:text-violet-300 dark:bg-violet-900/30', dot: 'bg-violet-500' },
+  published: { label: 'Published', color: 'bg-green-100 text-green-700 dark:text-green-300 dark:bg-green-900/30', dot: 'bg-green-500' },
 }
 
 const ideaStatuses: ContentIdeaStatus[] = ['idea', 'approved', 'in-progress', 'published']
@@ -1415,7 +1415,7 @@ function ContentIdeaCard({
             </span>
           )}
           {idea.needs_qc && (
-            <span className="flex items-center gap-0.5 rounded-md text-[10px] font-bold px-1.5 py-0.5 bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+            <span className="flex items-center gap-0.5 rounded-md text-[10px] font-bold px-1.5 py-0.5 bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
               <Shield className="h-2.5 w-2.5" />
               QC Requested
             </span>
@@ -1464,7 +1464,7 @@ function ContentIdeaCard({
             onClick={toggleQC}
             className={`w-full flex items-center justify-center gap-1.5 rounded-lg text-[11px] font-medium px-2 py-1.5 mt-2 transition-colors ${
               idea.needs_qc
-                ? 'bg-violet-100 dark:bg-violet-950/50 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:hover:bg-violet-900/60'
+                ? 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:hover:bg-violet-900/60'
                 : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
             }`}
           >

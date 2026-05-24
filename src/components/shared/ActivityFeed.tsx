@@ -153,19 +153,25 @@ export function ActivityFeed() {
   }, [open])
 
   const alertCount = dueAlerts.length
+  const overdueCount = dueAlerts.filter((a) => a.type === 'overdue').length
+  // Red when anything is overdue, amber when only due-soon, blue dot for new activity
+  const badgeColor = overdueCount > 0 ? 'bg-red-500' : 'bg-amber-500'
 
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
+        aria-label={alertCount > 0 ? `Notifications: ${alertCount} due alerts` : 'Notifications'}
         className="relative p-2 rounded-lg hover:bg-accent transition-colors"
       >
         <Bell className="h-4 w-4 text-muted-foreground" />
-        {(hasNew || alertCount > 0) && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
-            {alertCount > 0 ? alertCount : ''}
+        {alertCount > 0 ? (
+          <span className={`absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full ${badgeColor} text-white text-[10px] font-bold flex items-center justify-center px-1 ring-2 ring-background`}>
+            {alertCount}
           </span>
-        )}
+        ) : hasNew ? (
+          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-background" />
+        ) : null}
       </button>
 
       {open && (
@@ -177,7 +183,7 @@ export function ActivityFeed() {
                 onClick={() => setActiveSection('alerts')}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   activeSection === 'alerts'
-                    ? 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300 dark:bg-red-900/30 dark:text-red-400'
+                    ? 'bg-red-100 text-red-700 dark:text-red-300 dark:bg-red-900/30'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -187,7 +193,7 @@ export function ActivityFeed() {
                 onClick={() => setActiveSection('activity')}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   activeSection === 'activity'
-                    ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 dark:bg-blue-900/30 dark:text-blue-400'
+                    ? 'bg-blue-100 text-blue-700 dark:text-blue-300 dark:bg-blue-900/30'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -223,8 +229,8 @@ export function ActivityFeed() {
                           <div
                             className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
                               isOD
-                                ? 'bg-red-100 dark:bg-red-950/50 dark:bg-red-900/40'
-                                : 'bg-orange-100 dark:bg-orange-950/50 dark:bg-orange-900/40'
+                                ? 'bg-red-100 dark:bg-red-900/40'
+                                : 'bg-orange-100 dark:bg-orange-900/40'
                             }`}
                           >
                             {isOD ? (

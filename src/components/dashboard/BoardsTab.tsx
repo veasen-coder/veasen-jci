@@ -94,6 +94,9 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, isPresiden
 
     try {
       await updateTask(draggableId, { status: newStatus })
+      if (newStatus === 'done') {
+        toast.success('Task completed — nice work!')
+      }
     } catch {
       toast.error('Failed to update task status')
     }
