@@ -145,7 +145,7 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
               <button
                 key={event.id}
                 onClick={() => navigateToTab('events')}
-                className="shrink-0 w-56 rounded-xl border border-border bg-card overflow-hidden text-left hover:border-border/80 hover:bg-accent/50 transition-all duration-150"
+                className="shrink-0 w-56 rounded-xl border border-border bg-card overflow-hidden text-left card-interactive"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {event.poster_url ? (
@@ -187,7 +187,7 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
                       <p className="text-xs text-muted-foreground">
                         {formatDateKL(date + 'T00:00:00', 'EEE')}
                       </p>
-                      <p className={`text-sm ${isToday ? 'text-violet-600 font-semibold' : ''}`}>
+                      <p className={`text-sm ${isToday ? 'text-violet-600 dark:text-violet-400 font-semibold' : ''}`}>
                         {formatDateKL(date + 'T00:00:00', 'dd MMM')}
                       </p>
                     </div>
@@ -202,18 +202,18 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
                         <div key={`${item.type}-${item.id}`} className="flex items-center gap-2">
                           <span className={`shrink-0 rounded-md text-[10px] font-bold px-1.5 py-0.5 uppercase ${
                             item.type === 'event'
-                              ? 'bg-violet-100 text-violet-700'
-                              : 'bg-blue-100 text-blue-700'
+                              ? 'bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300'
+                              : 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300'
                           }`}>
                             {item.type}
                           </span>
                           <span className="text-sm truncate flex-1">{item.title}</span>
                           {item.member && <MemberAvatar member={item.member} size="sm" />}
                           <span className={`shrink-0 rounded-md text-xs font-medium px-2 py-0.5 ${
-                            item.status === 'blocked' ? 'bg-red-100 text-red-700' :
-                            item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                            item.status === 'planning' ? 'bg-amber-100 text-amber-700' :
-                            'bg-gray-100 text-gray-700'
+                            item.status === 'blocked' ? 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300' :
+                            item.status === 'in-progress' ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300' :
+                            item.status === 'planning' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300' :
+                            'bg-gray-100 dark:bg-gray-800 text-gray-700'
                           }`}>
                             {item.status}
                           </span>
@@ -270,9 +270,9 @@ export function OverviewTab({ tasks, members, loading }: OverviewTabProps) {
                       )}
                     </div>
                     <span className={`shrink-0 rounded-md text-xs font-medium px-2 py-0.5 ${
-                      event.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      event.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                      'bg-amber-100 text-amber-700'
+                      event.status === 'completed' ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300' :
+                      event.status === 'in-progress' ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300' :
+                      'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300'
                     }`}>
                       {event.status === 'completed' ? 'Completed' :
                        event.status === 'in-progress' ? 'In Progress' : 'Planning'}

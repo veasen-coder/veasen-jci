@@ -312,7 +312,7 @@ function MeetingForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-xl border border-violet-200 bg-violet-50/30 p-5 space-y-4"
+      className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/30 p-5 space-y-4"
     >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">New Meeting</h3>
@@ -557,7 +557,7 @@ function MeetingDetail({
                 }
                 setEditingAgenda(!editingAgenda)
               }}
-              className="text-xs text-blue-600 hover:underline"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
               {editingAgenda ? 'Save' : 'Edit'}
             </button>
@@ -592,7 +592,7 @@ function MeetingDetail({
                 }
                 setEditingNotes(!editingNotes)
               }}
-              className="text-xs text-blue-600 hover:underline"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
               {editingNotes ? 'Save' : 'Edit'}
             </button>
@@ -628,7 +628,7 @@ function MeetingDetail({
               >
                 <button onClick={() => toggleActionDone(item.id)}>
                   {item.done ? (
-                    <CheckSquare className="h-4 w-4 text-green-600" />
+                    <CheckSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
                   ) : (
                     <Square className="h-4 w-4 text-muted-foreground" />
                   )}
@@ -709,7 +709,7 @@ function MeetingDetail({
                 }
                 setEditingDocsUrl(!editingDocsUrl)
               }}
-              className="text-xs text-blue-600 hover:underline"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
               {editingDocsUrl ? 'Save' : 'Edit'}
             </button>
@@ -728,7 +728,7 @@ function MeetingDetail({
             href={meeting.google_docs_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-700 hover:bg-blue-100 transition-colors"
+            className="flex items-center gap-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 p-3 text-sm text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors"
           >
             <FileText className="h-4 w-4 shrink-0" />
             <span className="truncate">{meeting.google_docs_url}</span>
@@ -758,7 +758,7 @@ function MeetingDetail({
                     href={att.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-blue-600 hover:underline truncate block"
+                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline truncate block"
                   >
                     {att.name}
                   </a>
@@ -802,7 +802,7 @@ function MeetingDetail({
             variant="ghost"
             size="sm"
             onClick={onDelete}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-2"
+            className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 gap-2"
           >
             <Trash2 className="h-3.5 w-3.5" />
             Delete meeting

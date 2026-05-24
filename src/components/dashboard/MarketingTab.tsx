@@ -206,7 +206,7 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
                   <button
                     onClick={() => setShowForm('festival')}
                     className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      showForm === 'festival' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
+                      showForm === 'festival' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Single
@@ -214,7 +214,7 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
                   <button
                     onClick={() => setShowForm('festival_bulk')}
                     className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      showForm === 'festival_bulk' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
+                      showForm === 'festival_bulk' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Bulk Upload
@@ -324,12 +324,12 @@ export function MarketingTab({ members, canEdit = true }: MarketingTabProps) {
 /* ============= METRIC CARD ============= */
 function MetricCard({ icon, label, value, sub, alert }: { icon: React.ReactNode; label: string; value: number; sub: string; alert?: boolean }) {
   return (
-    <div className={`rounded-xl border bg-card p-4 ${alert ? 'border-red-200' : 'border-border'}`}>
+    <div className={`rounded-xl border bg-card p-4 card-interactive ${alert ? 'border-red-300 dark:border-red-800' : 'border-border'}`}>
       <div className="flex items-center gap-2 mb-2">
         {icon}
         <span className="text-xs text-muted-foreground">{label}</span>
       </div>
-      <p className={`text-2xl font-bold ${alert ? 'text-red-600' : ''}`}>{value}</p>
+      <p className={`text-2xl font-bold ${alert ? 'text-red-600 dark:text-red-400' : ''}`}>{value}</p>
       <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
     </div>
   )
@@ -429,7 +429,7 @@ function FestivalList({
               </div>
               {post.content_url && (
                 <a href={post.content_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
-                  className="shrink-0 flex items-center gap-1 text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded-md">
+                  className="shrink-0 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded-md">
                   <ExternalLink className="h-3 w-3" />Canva
                 </a>
               )}
@@ -486,12 +486,12 @@ function EventPosterList({
               )}
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-medium ${post.poster_done ? 'line-through text-muted-foreground' : ''}`}>{post.title}</p>
-                {linkedEvent && <p className="text-xs text-violet-600">Event: {linkedEvent.title}</p>}
+                {linkedEvent && <p className="text-xs text-violet-600 dark:text-violet-400">Event: {linkedEvent.title}</p>}
                 {post.due_date && <p className="text-xs text-muted-foreground">{formatDateKL(post.due_date + 'T00:00:00', 'dd MMM yyyy')}</p>}
               </div>
               {post.content_url && (
                 <a href={post.content_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
-                  className="shrink-0 flex items-center gap-1 text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded-md">
+                  className="shrink-0 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded-md">
                   <ExternalLink className="h-3 w-3" />Canva
                 </a>
               )}
@@ -517,7 +517,7 @@ function ClubPromotionList({
   members: Member[]; onUpdate: (id: string, updates: Partial<MarketingPost>) => void; onDelete: (id: string) => void
   canEdit?: boolean
 }) {
-  const statusColors: Record<MarketingStatus, string> = { draft: 'bg-amber-100 text-amber-700', scheduled: 'bg-blue-100 text-blue-700', posted: 'bg-green-100 text-green-700' }
+  const statusColors: Record<MarketingStatus, string> = { draft: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300', scheduled: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300', posted: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300' }
   const statusLabels: Record<MarketingStatus, string> = { draft: 'Planning', scheduled: 'Scheduled', posted: 'Posted' }
   const getMemberById = (id: string) => members.find((m) => m.id === id)
 
@@ -553,7 +553,7 @@ function ClubPromotionList({
               </div>
               {post.content_url && (
                 <a href={post.content_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
-                  className="shrink-0 flex items-center gap-1 text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded-md">
+                  className="shrink-0 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded-md">
                   <ExternalLink className="h-3 w-3" />Canva
                 </a>
               )}
@@ -699,7 +699,7 @@ function BulkFestivalForm({
     <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20 p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Upload className="h-4 w-4 text-amber-600" />
+          <Upload className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           <h3 className="text-sm font-semibold">Bulk Add Festivals</h3>
         </div>
         <button type="button" onClick={onCancel}><X className="h-4 w-4 text-muted-foreground" /></button>
@@ -710,7 +710,7 @@ function BulkFestivalForm({
         <p className="text-xs text-muted-foreground">Malaysian Festivals & Key Dates 2026</p>
         <button
           onClick={selectAll}
-          className="text-xs text-amber-600 hover:underline font-medium"
+          className="text-xs text-amber-600 dark:text-amber-400 hover:underline font-medium"
         >
           {allSelected ? 'Deselect All' : 'Select All'}
         </button>
@@ -730,7 +730,7 @@ function BulkFestivalForm({
               onClick={() => toggleFestival(festival.originalIndex)}
               className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-all ${
                 isSelected
-                  ? 'bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700'
+                  ? 'bg-amber-100 dark:bg-amber-950/50 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700'
                   : 'bg-card border border-border hover:border-amber-200 dark:hover:border-amber-800'
               }`}
             >
@@ -755,7 +755,7 @@ function BulkFestivalForm({
           <button
             type="button"
             onClick={addCustomRow}
-            className="text-xs text-amber-600 hover:underline font-medium flex items-center gap-1"
+            className="text-xs text-amber-600 dark:text-amber-400 hover:underline font-medium flex items-center gap-1"
           >
             <Plus className="h-3 w-3" /> Add Custom
           </button>
@@ -854,7 +854,7 @@ function CreateForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-violet-200 bg-violet-50/30 p-4 space-y-3 mb-3">
+    <form onSubmit={handleSubmit} className="rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50/30 p-4 space-y-3 mb-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">{l.title}</h3>
         <button type="button" onClick={onCancel}><X className="h-4 w-4 text-muted-foreground" /></button>
@@ -1001,14 +1001,14 @@ function EditSection({
         <Input type="url" value={contentUrl} onChange={(e) => { setContentUrl(e.target.value); markDirty() }} placeholder="https://www.canva.com/design/..." className="text-sm" />
         {post.content_url && (
           <a href={post.content_url} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-lg bg-blue-50 p-2 text-sm text-blue-700 hover:bg-blue-100 transition-colors mt-2">
+            className="flex items-center gap-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2 text-sm text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors mt-2">
             <ExternalLink className="h-4 w-4 shrink-0" /><span className="truncate">Open in Canva</span>
           </a>
         )}
       </div>
       <div className="flex items-center justify-between pt-1">
         {dirty ? <Button size="sm" onClick={handleSave}>Save Changes</Button> : <span className="text-xs text-muted-foreground">No unsaved changes</span>}
-        <Button variant="ghost" size="sm" onClick={() => onDelete(post.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1">
+        <Button variant="ghost" size="sm" onClick={() => onDelete(post.id)} className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 gap-1">
           <Trash2 className="h-3.5 w-3.5" />Delete
         </Button>
       </div>
@@ -1071,9 +1071,9 @@ function RoadmapTimeline({ posts, members }: { posts: MarketingPost[]; members: 
   const todayPct = (todayDay / totalDays) * 100
 
   const categoryConfig: Record<MarketingCategory, { label: string; color: string; bgColor: string; barColor: string }> = {
-    festival: { label: 'Festival Dates', color: 'text-amber-700', bgColor: 'bg-amber-50', barColor: 'bg-amber-400' },
-    event_poster: { label: 'Event Posters', color: 'text-violet-700', bgColor: 'bg-violet-50', barColor: 'bg-violet-400' },
-    club_promotion: { label: 'Club Promotion', color: 'text-teal-700', bgColor: 'bg-teal-50', barColor: 'bg-teal-400' },
+    festival: { label: 'Festival Dates', color: 'text-amber-700 dark:text-amber-300', bgColor: 'bg-amber-50 dark:bg-amber-950/30', barColor: 'bg-amber-400' },
+    event_poster: { label: 'Event Posters', color: 'text-violet-700 dark:text-violet-300', bgColor: 'bg-violet-50 dark:bg-violet-950/30', barColor: 'bg-violet-400' },
+    club_promotion: { label: 'Club Promotion', color: 'text-teal-700 dark:text-teal-300', bgColor: 'bg-teal-50 dark:bg-teal-950/30', barColor: 'bg-teal-400' },
   }
   const categories: MarketingCategory[] = ['festival', 'event_poster', 'club_promotion']
 
@@ -1199,10 +1199,10 @@ function MarketingSkeleton() {
 
 /* ============= CONTENT IDEAS SECTION ============= */
 const ideaStatusConfig: Record<ContentIdeaStatus, { label: string; color: string; dot: string }> = {
-  idea: { label: 'Idea', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', dot: 'bg-amber-500' },
-  approved: { label: 'Approved', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', dot: 'bg-blue-500' },
-  'in-progress': { label: 'In Progress', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', dot: 'bg-violet-500' },
-  published: { label: 'Published', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', dot: 'bg-green-500' },
+  idea: { label: 'Idea', color: 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 dark:bg-amber-900/30 dark:text-amber-400', dot: 'bg-amber-500' },
+  approved: { label: 'Approved', color: 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 dark:bg-blue-900/30 dark:text-blue-400', dot: 'bg-blue-500' },
+  'in-progress': { label: 'In Progress', color: 'bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 dark:bg-violet-900/30 dark:text-violet-400', dot: 'bg-violet-500' },
+  published: { label: 'Published', color: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300 dark:bg-green-900/30 dark:text-green-400', dot: 'bg-green-500' },
 }
 
 const ideaStatuses: ContentIdeaStatus[] = ['idea', 'approved', 'in-progress', 'published']
@@ -1415,7 +1415,7 @@ function ContentIdeaCard({
             </span>
           )}
           {idea.needs_qc && (
-            <span className="flex items-center gap-0.5 rounded-md text-[10px] font-bold px-1.5 py-0.5 bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+            <span className="flex items-center gap-0.5 rounded-md text-[10px] font-bold px-1.5 py-0.5 bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
               <Shield className="h-2.5 w-2.5" />
               QC Requested
             </span>
@@ -1440,7 +1440,7 @@ function ContentIdeaCard({
                 href={idea.reference_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-0.5 text-[10px] text-blue-600 hover:underline"
+                className="flex items-center gap-0.5 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
               >
                 <ExternalLink className="h-2.5 w-2.5" />
                 Reference
@@ -1464,7 +1464,7 @@ function ContentIdeaCard({
             onClick={toggleQC}
             className={`w-full flex items-center justify-center gap-1.5 rounded-lg text-[11px] font-medium px-2 py-1.5 mt-2 transition-colors ${
               idea.needs_qc
-                ? 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:hover:bg-violet-900/60'
+                ? 'bg-violet-100 dark:bg-violet-950/50 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:hover:bg-violet-900/60'
                 : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
             }`}
           >
@@ -1476,7 +1476,7 @@ function ContentIdeaCard({
         {idea.description && idea.description.length > 100 && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-[10px] text-violet-600 hover:underline"
+            className="text-[10px] text-violet-600 dark:text-violet-400 hover:underline"
           >
             {expanded ? 'Show less' : 'Show more'}
           </button>

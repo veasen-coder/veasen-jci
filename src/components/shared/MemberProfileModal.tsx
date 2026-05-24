@@ -150,7 +150,7 @@ export function MemberProfileModal({ memberId, tasks, onClose }: MemberProfileMo
                   <button
                     onClick={handleSave}
                     disabled={saving || !editName.trim() || !editRole.trim()}
-                    className="p-1.5 rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition-colors disabled:opacity-50 dark:bg-green-900/30 dark:text-green-400"
+                    className="p-1.5 rounded-md bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300 hover:bg-green-200 transition-colors disabled:opacity-50 dark:bg-green-900/30 dark:text-green-400"
                   >
                     {saving ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -192,15 +192,15 @@ export function MemberProfileModal({ memberId, tasks, onClose }: MemberProfileMo
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Total</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-semibold text-green-600">{stats.done}</p>
+              <p className="text-lg font-semibold text-green-600 dark:text-green-400">{stats.done}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Done</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-semibold text-blue-600">{stats.inProgress}</p>
+              <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">{stats.inProgress}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">In Progress</p>
             </div>
             <div className="text-center">
-              <p className="text-lg font-semibold text-red-600">{stats.blocked}</p>
+              <p className="text-lg font-semibold text-red-600 dark:text-red-400">{stats.blocked}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Blocked</p>
             </div>
           </div>
@@ -274,7 +274,7 @@ export function MemberProfileModal({ memberId, tasks, onClose }: MemberProfileMo
                           <PriorityBadge priority={task.priority} />
                           <DueDateBadge dueDate={task.due_date} status={task.status} />
                           {task.needs_qc && (
-                            <span className="flex items-center gap-0.5 bg-violet-100 text-violet-700 rounded-md text-[10px] font-bold px-1.5 py-0.5 dark:bg-violet-900/30 dark:text-violet-400">
+                            <span className="flex items-center gap-0.5 bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 rounded-md text-[10px] font-bold px-1.5 py-0.5 dark:bg-violet-900/30 dark:text-violet-400">
                               <Shield className="h-3 w-3" />
                               QC
                             </span>

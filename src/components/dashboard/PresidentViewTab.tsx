@@ -80,10 +80,10 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
   const qcTasks = tasks.filter((t) => t.needs_qc && t.status !== 'done')
 
   const metrics = [
-    { label: 'In Progress', value: counts.inProgress, icon: Loader2, color: 'text-blue-600' },
-    { label: 'Blockers', value: counts.blocked, icon: AlertTriangle, color: 'text-red-600' },
-    { label: 'Overdue', value: overdueCount, icon: Clock, color: 'text-amber-600' },
-    { label: 'Done This Week', value: doneThisWeek.length, icon: CheckCircle2, color: 'text-green-600' },
+    { label: 'In Progress', value: counts.inProgress, icon: Loader2, color: 'text-blue-600 dark:text-blue-400' },
+    { label: 'Blockers', value: counts.blocked, icon: AlertTriangle, color: 'text-red-600 dark:text-red-400' },
+    { label: 'Overdue', value: overdueCount, icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
+    { label: 'Done This Week', value: doneThisWeek.length, icon: CheckCircle2, color: 'text-green-600 dark:text-green-400' },
   ]
 
   const navigateToBoard = (memberId: string) => {
@@ -115,7 +115,7 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
       <section>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Plus className="h-4 w-4 text-teal-600" />
+            <Plus className="h-4 w-4 text-teal-600 dark:text-teal-400" />
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
               Assign Task
             </h2>
@@ -147,7 +147,7 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
                     onClick={() => setAssignMemberId(member.id)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
                       assignMemberId === member.id
-                        ? 'border-teal-400 bg-teal-100 dark:bg-teal-900/40 dark:border-teal-700'
+                        ? 'border-teal-400 bg-teal-100 dark:bg-teal-950/50 dark:bg-teal-900/40 dark:border-teal-700'
                         : 'border-border hover:border-teal-300 dark:hover:border-teal-700'
                     }`}
                   >
@@ -181,8 +181,8 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
                       onClick={() => setAssignPriority(p)}
                       className={`flex-1 px-3 py-2 rounded-md text-xs font-medium capitalize transition-all ${
                         assignPriority === p
-                          ? (p as string) === 'high' ? 'bg-red-100 text-red-700 border border-red-300 dark:bg-red-900/40 dark:text-red-400 dark:border-red-700'
-                            : (p as string) === 'low' ? 'bg-blue-100 text-blue-700 border border-blue-300 dark:bg-blue-900/40 dark:text-blue-400 dark:border-blue-700'
+                          ? (p as string) === 'high' ? 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-300 dark:bg-red-900/40 dark:text-red-400 dark:border-red-700'
+                            : (p as string) === 'low' ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-300 dark:bg-blue-900/40 dark:text-blue-400 dark:border-blue-700'
                             : 'bg-foreground text-background border border-foreground'
                           : 'bg-muted text-muted-foreground border border-transparent hover:border-border'
                       }`}
@@ -234,7 +234,7 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
       {/* QC Requests — tasks needing President review */}
       <section>
         <div className="flex items-center gap-2 mb-4">
-          <Shield className="h-4 w-4 text-violet-600" />
+          <Shield className="h-4 w-4 text-violet-600 dark:text-violet-400" />
           <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
             QC Requests
           </h2>
@@ -294,7 +294,7 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
                     )}
                   </div>
                   {stats.blocked > 0 && (
-                    <span className="bg-red-200 text-red-900 rounded-md text-xs font-medium px-2 py-0.5 shrink-0">
+                    <span className="bg-red-200 text-red-900 dark:text-red-200 rounded-md text-xs font-medium px-2 py-0.5 shrink-0">
                       {stats.blocked} blocked
                     </span>
                   )}
@@ -344,7 +344,7 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
                         {task.title}
                       </span>
                       {task.needs_qc && (
-                        <span className="flex items-center gap-0.5 bg-violet-100 text-violet-700 rounded-md text-[10px] font-bold px-1.5 py-0.5">
+                        <span className="flex items-center gap-0.5 bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 rounded-md text-[10px] font-bold px-1.5 py-0.5">
                           <Shield className="h-3 w-3" />
                           QC
                         </span>
@@ -423,7 +423,7 @@ function QCRequestCard({ task }: { task: TaskWithMember }) {
           variant="outline"
           onClick={handleReject}
           disabled={acting}
-          className="gap-1 h-8 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+          className="gap-1 h-8 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 hover:text-red-700"
         >
           <X className="h-3.5 w-3.5" />
           Revise

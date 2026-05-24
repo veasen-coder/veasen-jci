@@ -28,29 +28,29 @@ const categoryConfig: Record<ResourceCategory, { label: string; description: str
     label: 'INTIMA Files',
     description: 'INTIMA Week documents, forms, and planning files',
     icon: GraduationCap,
-    color: 'text-violet-700',
-    bgColor: 'bg-violet-50',
+    color: 'text-violet-700 dark:text-violet-300',
+    bgColor: 'bg-violet-50 dark:bg-violet-950/30',
   },
   department: {
     label: 'Department Files',
     description: 'Files organized by each department',
     icon: FolderOpen,
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-50',
+    color: 'text-blue-700 dark:text-blue-300',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
   },
   claim: {
     label: 'Claim Files',
     description: 'Reimbursement forms, receipts, and claim documents',
     icon: Receipt,
-    color: 'text-green-700',
-    bgColor: 'bg-green-50',
+    color: 'text-green-700 dark:text-green-300',
+    bgColor: 'bg-green-50 dark:bg-green-950/30',
   },
   template: {
     label: 'Templates',
     description: 'Reusable document templates and forms',
     icon: LayoutTemplate,
-    color: 'text-amber-700',
-    bgColor: 'bg-amber-50',
+    color: 'text-amber-700 dark:text-amber-300',
+    bgColor: 'bg-amber-50 dark:bg-amber-950/30',
   },
   general: {
     label: 'General',
@@ -244,7 +244,7 @@ export function ResourcesTab() {
                               href={resource.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                              className="flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
                               Open
@@ -305,7 +305,7 @@ function CreateResourceForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl border border-violet-200 bg-violet-50/30 p-5 space-y-4">
+    <form onSubmit={handleSubmit} className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/30 p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Add New Resource</h3>
         <button type="button" onClick={onCancel}>
@@ -448,7 +448,7 @@ function EditResourceForm({
           variant="ghost"
           size="sm"
           onClick={onDelete}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1"
+          className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 gap-1"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Delete

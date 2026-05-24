@@ -24,9 +24,9 @@ import {
 import { toast } from 'sonner'
 
 const statusColors: Record<EventStatus, string> = {
-  planning: 'bg-amber-100 text-amber-800',
-  'in-progress': 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800',
+  planning: 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300',
+  'in-progress': 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300',
+  completed: 'bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-300',
 }
 
 const statusLabels: Record<EventStatus, string> = {
@@ -209,7 +209,7 @@ export function EventsTab({ members }: EventsTabProps) {
                   <div className="flex items-center justify-between">
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : event.id)}
-                      className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                      className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                       {isExpanded ? 'Collapse' : 'Edit details'}
@@ -288,7 +288,7 @@ function EventForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-xl border border-violet-200 bg-violet-50/30 p-5 space-y-4"
+      className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/30 p-5 space-y-4"
     >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">New Event</h3>
@@ -438,7 +438,7 @@ function EventEditSection({
           variant="ghost"
           size="sm"
           onClick={onDelete}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1"
+          className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 gap-1"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Delete

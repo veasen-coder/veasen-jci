@@ -150,7 +150,7 @@ export function TaskEditModal({ task, events, members, onClose }: TaskEditModalP
                 onClick={() => setPriority(priority === 'normal' ? 'high' : 'normal')}
                 className={`w-full h-10 rounded-md text-sm font-medium transition-colors duration-150 ${
                   priority === 'high'
-                    ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                    ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
                     : 'bg-muted text-muted-foreground border border-border'
                 }`}
               >
@@ -194,7 +194,7 @@ export function TaskEditModal({ task, events, members, onClose }: TaskEditModalP
             onClick={() => setNeedsQc(!needsQc)}
             className={`flex items-center gap-2 w-full rounded-lg p-3 text-sm font-medium transition-all duration-150 ${
               needsQc
-                ? 'bg-violet-100 text-violet-800 border border-violet-200'
+                ? 'bg-violet-100 dark:bg-violet-950/50 text-violet-800 border border-violet-200 dark:border-violet-800'
                 : 'bg-muted text-muted-foreground border border-border'
             }`}
           >

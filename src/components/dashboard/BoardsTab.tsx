@@ -34,10 +34,10 @@ interface BoardsTabProps {
 
 type ColumnId = 'todo' | 'in-progress' | 'done'
 
-const columns: { id: ColumnId; label: string }[] = [
-  { id: 'todo', label: 'To Do' },
-  { id: 'in-progress', label: 'In Progress' },
-  { id: 'done', label: 'Done' },
+const columns: { id: ColumnId; label: string; dot: string }[] = [
+  { id: 'todo', label: 'To Do', dot: 'bg-slate-400' },
+  { id: 'in-progress', label: 'In Progress', dot: 'bg-blue-500' },
+  { id: 'done', label: 'Done', dot: 'bg-green-500' },
 ]
 
 export function BoardsTab({ tasks, members, loading, activeProfileId, isPresident, onMemberClick }: BoardsTabProps) {
@@ -192,10 +192,11 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, isPresiden
             const columnTasks = getColumnTasks(column.id)
             return (
               <div key={column.id} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${column.dot}`} />
+                  <h3 className="text-sm font-semibold">
                     {column.label}{' '}
-                    <span className="text-muted-foreground">({columnTasks.length})</span>
+                    <span className="text-muted-foreground font-normal">({columnTasks.length})</span>
                   </h3>
                 </div>
 
@@ -218,8 +219,10 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, isPresiden
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 onClick={() => setEditingTask(task)}
-                                className={`rounded-xl border border-border bg-card p-3 transition-all duration-150 cursor-pointer hover:ring-2 hover:ring-ring/20 ${
-                                  snapshot.isDragging ? 'shadow-lg ring-2 ring-ring/20' : ''
+                                className={`rounded-xl border bg-card p-3 transition-all duration-150 cursor-pointer hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-soft ${
+                                  task.needs_qc ? 'border-violet-300 dark:border-violet-800' : 'border-border'
+                                } ${
+                                  snapshot.isDragging ? 'shadow-elevated ring-2 ring-violet-500/30 rotate-1' : ''
                                 }`}
                               >
                                 {isAllView && task.member && (
@@ -236,13 +239,13 @@ export function BoardsTab({ tasks, members, loading, activeProfileId, isPresiden
                                   <PriorityBadge priority={task.priority} />
                                   <DueDateBadge dueDate={task.due_date} status={task.status} />
                                   {task.needs_qc && (
-                                    <span className="flex items-center gap-0.5 bg-violet-100 text-violet-700 rounded-md text-[10px] font-bold px-1.5 py-0.5">
+                                    <span className="pill bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300">
                                       <Shield className="h-3 w-3" />
                                       QC
                                     </span>
                                   )}
                                   {eventName && (
-                                    <span className="flex items-center gap-0.5 bg-emerald-100 text-emerald-700 rounded-md text-[10px] font-medium px-1.5 py-0.5 truncate max-w-[120px]">
+                                    <span className="pill bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 truncate max-w-[120px]">
                                       <Tag className="h-3 w-3 shrink-0" />
                                       {eventName}
                                     </span>
@@ -363,7 +366,7 @@ function AddTaskInline({ memberId, status }: { memberId: string; status: TaskSta
           onClick={() => setPriority(priority === 'normal' ? 'high' : 'normal')}
           className={`rounded-md text-xs font-medium px-3 py-2 transition-colors duration-150 ${
             priority === 'high'
-              ? 'bg-amber-100 text-amber-800'
+              ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300'
               : 'bg-muted text-muted-foreground'
           }`}
         >

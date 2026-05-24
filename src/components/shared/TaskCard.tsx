@@ -36,7 +36,7 @@ export function TaskCard({ task, showMember = false, onStatusClick, compact = fa
         <StatusBadge status={task.status} onClick={onStatusClick} />
         <PriorityBadge priority={task.priority} />
         {task.due_date && (
-          <span className={`text-xs ${overdue ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
+          <span className={`text-xs ${overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted-foreground'}`}>
             {formatDueDate(task.due_date)}
             {overdue && ' (Overdue)'}
           </span>

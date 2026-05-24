@@ -227,7 +227,7 @@ export function DashboardShell() {
               activeTab === 'president'
                 ? 'bg-violet-600 text-white shadow-glow'
                 : presidentUnlocked
-                ? 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400'
+                ? 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
@@ -290,8 +290,8 @@ export function DashboardShell() {
           <div className="bg-card border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-violet-600" />
+                <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold">President Access</h3>

@@ -177,7 +177,7 @@ export function ActivityFeed() {
                 onClick={() => setActiveSection('alerts')}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   activeSection === 'alerts'
-                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    ? 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300 dark:bg-red-900/30 dark:text-red-400'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -187,7 +187,7 @@ export function ActivityFeed() {
                 onClick={() => setActiveSection('activity')}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   activeSection === 'activity'
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 dark:bg-blue-900/30 dark:text-blue-400'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -223,8 +223,8 @@ export function ActivityFeed() {
                           <div
                             className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
                               isOD
-                                ? 'bg-red-100 dark:bg-red-900/40'
-                                : 'bg-orange-100 dark:bg-orange-900/40'
+                                ? 'bg-red-100 dark:bg-red-950/50 dark:bg-red-900/40'
+                                : 'bg-orange-100 dark:bg-orange-950/50 dark:bg-orange-900/40'
                             }`}
                           >
                             {isOD ? (

@@ -126,7 +126,7 @@ function ClickUpIntegration() {
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-medium">ClickUp</h3>
-          <span className="bg-green-100 text-green-800 rounded-md text-xs font-medium px-2 py-0.5 inline-block mt-1">
+          <span className="bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-300 rounded-md text-xs font-medium px-2 py-0.5 inline-block mt-1">
             Connected
           </span>
         </div>
@@ -168,7 +168,7 @@ function ClickUpIntegration() {
       </div>
 
       {lastResult && (
-        <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 rounded-lg p-2.5">
+        <div className="flex items-center gap-2 text-xs text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/30 rounded-lg p-2.5">
           <CheckCircle2 className="h-3.5 w-3.5" />
           Synced {lastResult.synced} of {lastResult.total} tasks
         </div>
@@ -254,12 +254,12 @@ function GoogleSheetsIntegration() {
   return (
     <div className="rounded-xl border border-border bg-card p-5 space-y-4">
       <div className="flex items-start gap-3">
-        <div className="rounded-lg bg-green-100 p-2.5 shrink-0">
-          <Sheet className="h-5 w-5 text-green-700" />
+        <div className="rounded-lg bg-green-100 dark:bg-green-950/50 p-2.5 shrink-0">
+          <Sheet className="h-5 w-5 text-green-700 dark:text-green-300" />
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-medium">Google Sheets</h3>
-          <span className="bg-amber-100 text-amber-800 rounded-md text-xs font-medium px-2 py-0.5 inline-block mt-1">
+          <span className="bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 rounded-md text-xs font-medium px-2 py-0.5 inline-block mt-1">
             Requires Setup
           </span>
         </div>
@@ -306,13 +306,13 @@ function GoogleSheetsIntegration() {
       </div>
 
       {lastResult && (
-        <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 rounded-lg p-2.5">
+        <div className="flex items-center gap-2 text-xs text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/30 rounded-lg p-2.5">
           <CheckCircle2 className="h-3.5 w-3.5" />
           {lastResult}
         </div>
       )}
 
-      <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5">
+      <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 rounded-lg p-2.5">
         <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
         <span>
           Google Sheets requires admin setup. Contact your team lead if this feature isn&apos;t working.
@@ -327,28 +327,28 @@ const otherIntegrations = [
     title: 'WhatsApp bot',
     description: 'Members send daily task updates via WhatsApp. Bot parses and writes to dashboard.',
     difficulty: 'Easy',
-    difficultyColor: 'bg-green-100 text-green-800',
+    difficultyColor: 'bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-300',
     icon: MessageSquare,
   },
   {
     title: 'Notion database',
     description: 'Connect via Notion API. Pull tasks from shared Notion DB in real time.',
     difficulty: 'Medium',
-    difficultyColor: 'bg-amber-100 text-amber-800',
+    difficultyColor: 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300',
     icon: Database,
   },
   {
     title: 'n8n automation',
     description: 'Central n8n workflow aggregates from WhatsApp, Notion, or Sheets into dashboard DB.',
     difficulty: 'Advanced',
-    difficultyColor: 'bg-blue-100 text-blue-800',
+    difficultyColor: 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300',
     icon: GitBranch,
   },
   {
     title: 'AI daily digest',
     description: 'Claude API call every morning at 8am KL to generate weekly rollup and flag blockers.',
     difficulty: 'Advanced',
-    difficultyColor: 'bg-blue-100 text-blue-800',
+    difficultyColor: 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300',
     icon: Sparkles,
   },
 ]

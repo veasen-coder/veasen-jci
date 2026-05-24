@@ -52,7 +52,7 @@ export function SummaryTab({ tasks, loading: tasksLoading }: SummaryTabProps) {
         {/* Completed Today */}
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
               Completed Today
             </h2>
@@ -85,13 +85,13 @@ export function SummaryTab({ tasks, loading: tasksLoading }: SummaryTabProps) {
           {overdueItems.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <Clock className="h-4 w-4 text-red-600" />
+                <Clock className="h-4 w-4 text-red-600 dark:text-red-400" />
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                   Overdue
                 </h2>
-                <span className="text-xs text-red-600 font-medium">({overdueItems.length})</span>
+                <span className="text-xs text-red-600 dark:text-red-400 font-medium">({overdueItems.length})</span>
               </div>
-              <div className="rounded-xl border border-red-200 bg-red-50/50 p-4 space-y-3">
+              <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50/50 p-4 space-y-3">
                 {overdueItems.map((task) => (
                   <div key={task.id} className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
@@ -101,7 +101,7 @@ export function SummaryTab({ tasks, loading: tasksLoading }: SummaryTabProps) {
                       <p className="text-xs text-muted-foreground">{task.member?.name}</p>
                     </div>
                     {task.due_date && (
-                      <span className="text-xs text-red-600 font-medium shrink-0">
+                      <span className="text-xs text-red-600 dark:text-red-400 font-medium shrink-0">
                         {formatDueDate(task.due_date)}
                       </span>
                     )}
@@ -114,7 +114,7 @@ export function SummaryTab({ tasks, loading: tasksLoading }: SummaryTabProps) {
           {/* Up Next */}
           <section>
             <div className="flex items-center gap-2 mb-4">
-              <ArrowRight className="h-4 w-4 text-amber-600" />
+              <ArrowRight className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                 Up Next
               </h2>
@@ -150,7 +150,7 @@ export function SummaryTab({ tasks, loading: tasksLoading }: SummaryTabProps) {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-violet-600" />
+            <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
               Weekly Rollup
             </h2>
@@ -171,17 +171,17 @@ export function SummaryTab({ tasks, loading: tasksLoading }: SummaryTabProps) {
         <div className="rounded-xl border border-border bg-card p-5 space-y-5">
           {/* Mini metrics */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-lg bg-green-50 p-3 text-center">
-              <p className="text-2xl font-medium text-green-700">{doneThisWeek.length}</p>
-              <p className="text-xs text-green-600">Completed this week</p>
+            <div className="rounded-lg bg-green-50 dark:bg-green-950/30 p-3 text-center">
+              <p className="text-2xl font-medium text-green-700 dark:text-green-300">{doneThisWeek.length}</p>
+              <p className="text-xs text-green-600 dark:text-green-400">Completed this week</p>
             </div>
-            <div className="rounded-lg bg-blue-50 p-3 text-center">
-              <p className="text-2xl font-medium text-blue-700">{activeTasks.length}</p>
-              <p className="text-xs text-blue-600">Still active</p>
+            <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-3 text-center">
+              <p className="text-2xl font-medium text-blue-700 dark:text-blue-300">{activeTasks.length}</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400">Still active</p>
             </div>
-            <div className="rounded-lg bg-red-50 p-3 text-center">
-              <p className="text-2xl font-medium text-red-700">{blockers.length}</p>
-              <p className="text-xs text-red-600">Critical blockers</p>
+            <div className="rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-center">
+              <p className="text-2xl font-medium text-red-700 dark:text-red-300">{blockers.length}</p>
+              <p className="text-xs text-red-600 dark:text-red-400">Critical blockers</p>
             </div>
           </div>
 
@@ -197,9 +197,9 @@ export function SummaryTab({ tasks, loading: tasksLoading }: SummaryTabProps) {
                 <p className="text-sm leading-relaxed">{summary.weekly_narrative}</p>
               </div>
               {summary.blockers_narrative && (
-                <div className="rounded-lg bg-red-50 p-4 flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
-                  <p className="text-sm text-red-800 leading-relaxed">
+                <div className="rounded-lg bg-red-50 dark:bg-red-950/30 p-4 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                  <p className="text-sm text-red-800 dark:text-red-300 leading-relaxed">
                     {summary.blockers_narrative}
                   </p>
                 </div>
