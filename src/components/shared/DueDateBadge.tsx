@@ -15,7 +15,7 @@ export function DueDateBadge({ dueDate, status }: DueDateBadgeProps) {
 
   if (status === 'done') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 text-gray-500 text-xs px-2 py-0.5">
+      <span className="pill bg-muted text-muted-foreground">
         {dateText}
       </span>
     )
@@ -23,7 +23,7 @@ export function DueDateBadge({ dueDate, status }: DueDateBadgeProps) {
 
   if (isOverdue(dueDate)) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-red-100 text-red-700 text-xs px-2 py-0.5 font-medium">
+      <span className="pill bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300">
         <AlertTriangle className="h-3 w-3" />
         Overdue &middot; {dateText}
       </span>
@@ -32,7 +32,7 @@ export function DueDateBadge({ dueDate, status }: DueDateBadgeProps) {
 
   if (isDueSoon(dueDate)) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-orange-100 text-orange-700 text-xs px-2 py-0.5">
+      <span className="pill bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300">
         <Clock className="h-3 w-3" />
         {dateText}
       </span>
@@ -41,14 +41,14 @@ export function DueDateBadge({ dueDate, status }: DueDateBadgeProps) {
 
   if (isDueThisWeek(dueDate)) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 text-amber-700 text-xs px-2 py-0.5">
+      <span className="pill bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
         {dateText}
       </span>
     )
   }
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-md bg-muted text-muted-foreground text-xs px-2 py-0.5">
+    <span className="pill bg-muted text-muted-foreground">
       {dateText}
     </span>
   )

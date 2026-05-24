@@ -14,7 +14,21 @@ import { MarketingTab } from './MarketingTab'
 import { PartnershipsTab } from './PartnershipsTab'
 import { IntegrationsTab } from './IntegrationsTab'
 import { ResourcesTab } from './ResourcesTab'
-import { Shield, X, Lock, ChevronDown, LogOut } from 'lucide-react'
+import {
+  Shield,
+  X,
+  Lock,
+  ChevronDown,
+  LogOut,
+  LayoutDashboard,
+  CalendarDays,
+  KanbanSquare,
+  FileText,
+  Megaphone,
+  Handshake,
+  FolderOpen,
+  Plug,
+} from 'lucide-react'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { ActivityFeed } from '@/components/shared/ActivityFeed'
 import { MemberProfileModal } from '@/components/shared/MemberProfileModal'
@@ -23,14 +37,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 const tabs = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'events', label: 'Events' },
-  { id: 'boards', label: 'My Board' },
-  { id: 'meetings', label: 'Meeting Minutes' },
-  { id: 'marketing', label: 'Marketing' },
-  { id: 'partnerships', label: 'Partnerships' },
-  { id: 'resources', label: 'Resources' },
-  { id: 'integrations', label: 'Integrations' },
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'events', label: 'Events', icon: CalendarDays },
+  { id: 'boards', label: 'My Board', icon: KanbanSquare },
+  { id: 'meetings', label: 'Meeting Minutes', icon: FileText },
+  { id: 'marketing', label: 'Marketing', icon: Megaphone },
+  { id: 'partnerships', label: 'Partnerships', icon: Handshake },
+  { id: 'resources', label: 'Resources', icon: FolderOpen },
+  { id: 'integrations', label: 'Integrations', icon: Plug },
 ] as const
 
 type TabId = (typeof tabs)[number]['id'] | 'president'
@@ -124,13 +138,19 @@ export function DashboardShell() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="h-1 bg-gradient-to-r from-violet-600 to-blue-600" />
-      <header className="border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between">
-        <img
-          src="https://res.cloudinary.com/dp0wzw4wa/image/upload/q_auto/f_auto/v1776338473/JCI_YOUTH_IICS-3_1_sb89ll.png"
-          alt="JCI Youth IICS"
-          className="h-10 w-10 rounded-full object-cover"
-        />
+      <div className="h-1 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-blue-600" />
+      <header className="glass sticky top-0 z-30 border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://res.cloudinary.com/dp0wzw4wa/image/upload/q_auto/f_auto/v1776338473/JCI_YOUTH_IICS-3_1_sb89ll.png"
+            alt="JCI Youth IICS"
+            className="h-10 w-10 rounded-full object-cover ring-2 ring-violet-500/20 shadow-soft"
+          />
+          <div className="hidden md:block leading-tight">
+            <p className="text-sm font-bold tracking-tight">JCI Youth IICS</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Command Dashboard</p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <ActivityFeed />
           <ThemeToggle />
@@ -202,9 +222,10 @@ export function DashboardShell() {
 
           <button
             onClick={handlePresidentClick}
+            aria-label="President View"
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
               activeTab === 'president'
-                ? 'bg-violet-600 text-white shadow-md'
+                ? 'bg-violet-600 text-white shadow-glow'
                 : presidentUnlocked
                 ? 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -220,25 +241,31 @@ export function DashboardShell() {
         </div>
       </header>
 
-      <nav className="border-b border-border px-4 sm:px-6 overflow-x-auto">
-        <div className="flex gap-1 min-w-max">
-          {visibleTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setTab(tab.id)}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors duration-150 border-b-2 whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'border-foreground text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <nav className="glass sticky top-[64px] z-20 border-b border-border px-4 sm:px-6 overflow-x-auto">
+        <div className="flex gap-1 min-w-max py-2">
+          {visibleTabs.map((tab) => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setTab(tab.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-150 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-soft'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {tab.label}
+              </button>
+            )
+          })}
         </div>
       </nav>
 
-      <main className="px-4 sm:px-6 py-6 max-w-[1400px] mx-auto">
+      <main key={activeTab} className="px-4 sm:px-6 py-6 max-w-[1400px] mx-auto animate-fade-in-up">
         {activeTab === 'overview' && <OverviewTab tasks={tasks} members={members} loading={loading} />}
         {activeTab === 'president' && presidentUnlocked && <PresidentViewTab tasks={tasks} members={members} loading={loading} onMemberClick={(member) => setProfileMemberId(member.id)} />}
         {activeTab === 'events' && <EventsTab members={members} />}
