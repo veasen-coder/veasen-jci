@@ -4,9 +4,24 @@ import { toZonedTime } from 'date-fns-tz'
 const KL_TIMEZONE = 'Asia/Kuala_Lumpur'
 
 export function formatDateKL(date: string | Date, formatStr: string = 'dd MMM yyyy') {
-  const d = typeof date === 'string' ? new Date(date) : date
-  const zonedDate = toZonedTime(d, KL_TIMEZONE)
-  return format(zonedDate, formatStr)
+  try {
+    let d: Date
+    if (typeof date === 'string') {
+      // Always extract just the YYYY-MM-DD portion so that callers which append
+      // 'T00:00:00' to a date string, and Supabase values that already include a
+      // time component, both produce a valid local-time Date rather than an
+      // invalid double-stamped string like "2026-06-07T10:00:00ZT00:00:00".
+      const datePart = date.slice(0, 10)
+      d = new Date(datePart + 'T00:00:00')
+    } else {
+      d = date
+    }
+    if (isNaN(d.getTime())) return '—'
+    const zonedDate = toZonedTime(d, KL_TIMEZONE)
+    return format(zonedDate, formatStr)
+  } catch {
+    return '—'
+  }
 }
 
 export function formatRelative(date: string | Date) {
