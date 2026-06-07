@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useTasks } from '@/hooks/useTasks'
 import { useMembers } from '@/hooks/useMembers'
@@ -66,6 +66,11 @@ export function DashboardShell() {
 
   const activeProfile = members.find((m) => m.id === activeProfileId) || null
 
+  // Defer rendering until after hydration to avoid server/client mismatch
+  // (localStorage is unavailable on the server, so activeProfileId differs)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   const [profileMemberId, setProfileMemberId] = useState<string | null>(null)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [password, setPassword] = useState('')
@@ -123,6 +128,11 @@ export function DashboardShell() {
   const handleSwitchProfile = (memberId: string) => {
     setActiveProfileId(memberId)
     setShowProfileDropdown(false)
+  }
+
+  // Wait for client hydration before reading localStorage-backed store state
+  if (!mounted) {
+    return <ProfileSelector members={[]} loading={true} onSelect={() => {}} />
   }
 
   // Show profile selector if no active profile
