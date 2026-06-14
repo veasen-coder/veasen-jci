@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import type { TaskWithMember, Member } from '@/lib/supabase/types'
+import type { TaskWithMember, Member, ContentIdea } from '@/lib/supabase/types'
 import { useTaskStore } from '@/lib/store/useTaskStore'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,29 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const addTask = useTaskStore((s) => s.addTask)
+
+  const [qcIdeas, setQcIdeas] = useState<ContentIdea[]>([])
+
+  const fetchQcIdeas = useCallback(async () => {
+    try {
+      const res = await fetch('/api/content-ideas')
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setQcIdeas(data.filter((i: ContentIdea) => i.needs_qc && i.status !== 'published'))
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchQcIdeas()
+  }, [fetchQcIdeas])
+
+  const handleIdeaQcResolved = (id: string) => {
+    setQcIdeas((prev) => prev.filter((i) => i.id !== id))
+  }
 
   const [showAssignForm, setShowAssignForm] = useState(false)
   const [assignMemberId, setAssignMemberId] = useState('')
@@ -231,20 +254,28 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
         )}
       </section>
 
-      {/* QC Requests — tasks needing President review */}
+      {/* QC Requests — tasks and content ideas needing President review */}
       <section>
         <div className="flex items-center gap-2 mb-4">
           <Shield className="h-4 w-4 text-violet-600 dark:text-violet-400" />
           <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
             QC Requests
           </h2>
-          <span className="text-xs text-muted-foreground">({qcTasks.length})</span>
+          <span className="text-xs text-muted-foreground">({qcTasks.length + qcIdeas.length})</span>
         </div>
         <div className="rounded-xl border border-border bg-card p-5">
-          {qcTasks.length > 0 ? (
+          {qcTasks.length + qcIdeas.length > 0 ? (
             <div className="space-y-3">
               {qcTasks.map((task) => (
-                <QCRequestCard key={task.id} task={task} />
+                <QCRequestCard key={`task-${task.id}`} task={task} />
+              ))}
+              {qcIdeas.map((idea) => (
+                <ContentIdeaQCCard
+                  key={`idea-${idea.id}`}
+                  idea={idea}
+                  members={members}
+                  onResolved={() => handleIdeaQcResolved(idea.id)}
+                />
               ))}
             </div>
           ) : (
@@ -417,6 +448,104 @@ function QCRequestCard({ task }: { task: TaskWithMember }) {
         >
           <Check className="h-3.5 w-3.5" />
           Done
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleReject}
+          disabled={acting}
+          className="gap-1 h-8 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 hover:text-red-700"
+        >
+          <X className="h-3.5 w-3.5" />
+          Revise
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ============= CONTENT IDEA QC CARD ============= */
+function ContentIdeaQCCard({
+  idea,
+  members,
+  onResolved,
+}: {
+  idea: ContentIdea
+  members: Member[]
+  onResolved: () => void
+}) {
+  const [acting, setActing] = useState(false)
+  const assignee = idea.assigned_to ? members.find((m) => m.id === idea.assigned_to) : null
+
+  const patch = async (updates: Partial<ContentIdea>) => {
+    const res = await fetch(`/api/content-ideas/${idea.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    if (!res.ok) throw new Error()
+  }
+
+  const handleApprove = async () => {
+    setActing(true)
+    try {
+      await patch({ status: 'published', needs_qc: false })
+      toast.success(`"${idea.title}" approved & marked published`)
+      onResolved()
+    } catch {
+      toast.error('Failed to approve idea')
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleReject = async () => {
+    setActing(true)
+    try {
+      await patch({ needs_qc: false })
+      toast.info(`"${idea.title}" sent back for revision`)
+      onResolved()
+    } catch {
+      toast.error('Failed to reject idea')
+    } finally {
+      setActing(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-violet-50/50 border border-violet-100 dark:bg-violet-950/30 dark:border-violet-900">
+      {assignee ? (
+        <MemberAvatar member={assignee} size="sm" />
+      ) : (
+        <div className="h-[26px] w-[26px] rounded-full bg-muted flex items-center justify-center shrink-0">
+          <Shield className="h-3 w-3 text-muted-foreground" />
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-sm font-medium truncate">{idea.title}</p>
+          <span className="pill bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300">
+            Content Idea
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {assignee ? `${assignee.name} · ${assignee.role}` : 'Unassigned'}
+          {' · '}
+          <span className="capitalize">{idea.platform}</span>
+        </p>
+        {idea.description && (
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{idea.description}</p>
+        )}
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <Button
+          size="sm"
+          onClick={handleApprove}
+          disabled={acting}
+          className="gap-1 h-8 bg-green-600 hover:bg-green-700 text-white"
+        >
+          <Check className="h-3.5 w-3.5" />
+          Approve
         </Button>
         <Button
           size="sm"
