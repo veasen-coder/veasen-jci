@@ -396,19 +396,73 @@ export function PresidentViewTab({ tasks, members, loading, onMemberClick }: Pre
   )
 }
 
-/* ============= QC REQUEST CARD ============= */
+/* ============= QC RESULT OVERLAY ============= */
+type QCResult = 'approved' | 'revised'
+
+function QCResultCard({ result, title, approveLabel = 'Approved', reviseLabel = 'Sent for revision' }: {
+  result: QCResult
+  title: string
+  approveLabel?: string
+  reviseLabel?: string
+}) {
+  const isApproved = result === 'approved'
+  return (
+    <div
+      className={`flex items-center gap-3 p-3 rounded-lg border animate-fade-in transition-all ${
+        isApproved
+          ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800'
+          : 'bg-orange-50 border-orange-200 dark:bg-orange-950/30 dark:border-orange-800'
+      }`}
+    >
+      <div
+        className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 animate-check-pop ${
+          isApproved
+            ? 'bg-green-500 text-white'
+            : 'bg-orange-500 text-white'
+        }`}
+      >
+        {isApproved ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm font-semibold ${
+          isApproved ? 'text-green-800 dark:text-green-300' : 'text-orange-800 dark:text-orange-300'
+        }`}>
+          {isApproved ? approveLabel : reviseLabel}
+        </p>
+        <p className="text-xs text-muted-foreground truncate">{title}</p>
+      </div>
+    </div>
+  )
+}
+
+/* ============= QC REQUEST CARD (TASKS) ============= */
 function QCRequestCard({ task }: { task: TaskWithMember }) {
-  const updateTask = useTaskStore((s) => s.updateTask)
   const [acting, setActing] = useState(false)
+  const [result, setResult] = useState<QCResult | null>(null)
 
   const handleApprove = async () => {
     setActing(true)
     try {
-      await updateTask(task.id, { status: 'done', needs_qc: false })
+      // Call the API directly so the parent doesn't filter the card out
+      // before the success state has a chance to render.
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'done', needs_qc: false }),
+      })
+      if (!res.ok) throw new Error()
+      setResult('approved')
       toast.success(`"${task.title}" approved & marked as done`)
+      setTimeout(() => {
+        // Commit to the store; parent will then re-filter and unmount us
+        useTaskStore.setState((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === task.id ? { ...t, status: 'done' as const, needs_qc: false } : t
+          ),
+        }))
+      }, 1400)
     } catch {
       toast.error('Failed to approve task')
-    } finally {
       setActing(false)
     }
   }
@@ -416,13 +470,36 @@ function QCRequestCard({ task }: { task: TaskWithMember }) {
   const handleReject = async () => {
     setActing(true)
     try {
-      await updateTask(task.id, { needs_qc: false })
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ needs_qc: false }),
+      })
+      if (!res.ok) throw new Error()
+      setResult('revised')
       toast.info(`"${task.title}" sent back for revision`)
+      setTimeout(() => {
+        useTaskStore.setState((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === task.id ? { ...t, needs_qc: false } : t
+          ),
+        }))
+      }, 1400)
     } catch {
       toast.error('Failed to reject task')
-    } finally {
       setActing(false)
     }
+  }
+
+  if (result) {
+    return (
+      <QCResultCard
+        result={result}
+        title={task.title}
+        approveLabel="Approved & marked done"
+        reviseLabel="Sent back for revision"
+      />
+    )
   }
 
   return (
@@ -475,6 +552,7 @@ function ContentIdeaQCCard({
   onResolved: () => void
 }) {
   const [acting, setActing] = useState(false)
+  const [result, setResult] = useState<QCResult | null>(null)
   const assignee = idea.assigned_to ? members.find((m) => m.id === idea.assigned_to) : null
 
   const patch = async (updates: Partial<ContentIdea>) => {
@@ -490,11 +568,11 @@ function ContentIdeaQCCard({
     setActing(true)
     try {
       await patch({ status: 'published', needs_qc: false })
+      setResult('approved')
       toast.success(`"${idea.title}" approved & marked published`)
-      onResolved()
+      setTimeout(() => onResolved(), 1400)
     } catch {
       toast.error('Failed to approve idea')
-    } finally {
       setActing(false)
     }
   }
@@ -503,13 +581,24 @@ function ContentIdeaQCCard({
     setActing(true)
     try {
       await patch({ needs_qc: false })
+      setResult('revised')
       toast.info(`"${idea.title}" sent back for revision`)
-      onResolved()
+      setTimeout(() => onResolved(), 1400)
     } catch {
       toast.error('Failed to reject idea')
-    } finally {
       setActing(false)
     }
+  }
+
+  if (result) {
+    return (
+      <QCResultCard
+        result={result}
+        title={idea.title}
+        approveLabel="Approved & marked published"
+        reviseLabel="Sent back for revision"
+      />
+    )
   }
 
   return (
