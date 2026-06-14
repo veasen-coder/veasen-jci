@@ -567,9 +567,9 @@ function ContentIdeaQCCard({
   const handleApprove = async () => {
     setActing(true)
     try {
-      await patch({ status: 'published', needs_qc: false })
+      await patch({ status: 'approved', needs_qc: false })
       setResult('approved')
-      toast.success(`"${idea.title}" approved & marked published`)
+      toast.success(`"${idea.title}" approved`)
       setTimeout(() => onResolved(), 1400)
     } catch {
       toast.error('Failed to approve idea')
@@ -595,7 +595,7 @@ function ContentIdeaQCCard({
       <QCResultCard
         result={result}
         title={idea.title}
-        approveLabel="Approved & marked published"
+        approveLabel="Approved"
         reviseLabel="Sent back for revision"
       />
     )
